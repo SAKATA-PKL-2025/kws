@@ -4,6 +4,7 @@ use App\Http\Controllers\Category\CategoryController;
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Public\PublicController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -17,11 +18,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::get('/', function () {
-//     return view('welcome');
-// });
+// Halaman Publik Silsilah Keluarga
+Route::get('/', [PublicController::class, 'index'])->name('home');
+Route::get('/tentang', [PublicController::class, 'about'])->name('about');
+Route::get('/galeri', [PublicController::class, 'gallery'])->name('gallery');
+Route::get('/kebijakan-privasi', function () {
+    return view('public.privacy');
+})->name('privacy');
 
-Route::get('/', [IndexController::class, 'index'])->name('index');
+// Route lama (bisa dihapus jika tidak dipakai)
+// Route::get('/', [IndexController::class, 'index'])->name('index');
 
 Route::prefix('/product')->name('product.')->controller(ProductController::class)->group(function () {
     Route::get('', 'index')->name('index');
@@ -37,4 +43,4 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

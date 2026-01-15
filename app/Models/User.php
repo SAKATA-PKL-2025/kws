@@ -12,14 +12,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
+/**
+ * @mixin \Spatie\Permission\Traits\HasRoles
+ * @method bool hasRole($roles, string $guard = null)
+ * @method bool hasAnyRole($roles, string $guard = null)
+ * @method bool hasAllRoles($roles, string $guard = null)
+ */
 class User extends Authenticatable implements FilamentUser
 {
-    use HasApiTokens, HasFactory, Notifiable, UuidTrait;
+    use HasApiTokens, HasFactory, Notifiable, UuidTrait, HasRoles;
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return str_ends_with($this->role_user->name, 'Super Admin') && $this->hasVerifiedEmail();
+        return $this->hasRole(['Super Admin', 'Admin Keluarga']);
     }
     /**
      * The attributes that are mass assignable.
@@ -54,7 +61,7 @@ class User extends Authenticatable implements FilamentUser
     ];
 
 
-    public function role_user() : BelongsTo
+    public function role_user(): BelongsTo
     {
         return $this->belongsTo(RoleUser::class);
     }
