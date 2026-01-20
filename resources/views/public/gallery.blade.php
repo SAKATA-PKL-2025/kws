@@ -57,7 +57,7 @@
 @section('content')
 <!-- Hero Section -->
 <div class="hero-pattern text-white py-20">
-    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+    <div class="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
         <h1 class="text-4xl md:text-5xl font-bold mb-4">
             <i class="fas fa-images mr-3"></i>
             Galeri Foto Keluarga
@@ -69,7 +69,7 @@
 </div>
 
 <!-- Filter Section -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
     <div class="bg-white rounded-lg shadow-sm p-6">
         <div class="flex flex-wrap items-center gap-4">
             <div class="flex items-center space-x-2">
@@ -92,7 +92,7 @@
 </div>
 
 <!-- Gallery Grid -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+<div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 pb-8">
     @if($photos->isEmpty())
         <div class="text-center py-16 bg-white rounded-2xl shadow-lg">
             <i class="fas fa-images text-gray-300 text-6xl mb-4"></i>
@@ -100,7 +100,7 @@
             <p class="text-gray-600">Album foto keluarga akan ditampilkan di sini setelah diupload oleh admin.</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="gallery-container">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="gallery-container">
             @foreach($photos as $photo)
                 <div class="gallery-card shadow-lg cursor-pointer" 
                      data-category="branch-{{ $photo->family_branch_id ?? 'none' }}"
@@ -189,103 +189,9 @@
         </div>
     </div>
 </div>
-            </div>
-        </div>
-
-        <div class="gallery-card shadow-lg h-64" data-category="pernikahan">
-            <div class="h-full bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <i class="fas fa-heart text-6xl mb-4 opacity-50"></i>
-                    <p class="text-sm">Pernikahan 2023</p>
-                </div>
-            </div>
-            <div class="gallery-overlay">
-                <h3 class="text-white font-bold text-lg mb-1">Pernikahan Ahmad & Siti</h3>
-                <p class="text-gray-300 text-sm">20 Juni 2023</p>
-            </div>
-        </div>
-
-        <div class="gallery-card shadow-lg h-64" data-category="reuni">
-            <div class="h-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <i class="fas fa-users text-6xl mb-4 opacity-50"></i>
-                    <p class="text-sm">Reuni Keluarga</p>
-                </div>
-            </div>
-            <div class="gallery-overlay">
-                <h3 class="text-white font-bold text-lg mb-1">Reuni Keluarga Besar</h3>
-                <p class="text-gray-300 text-sm">10 Agustus 2023</p>
-            </div>
-        </div>
-
-        <div class="gallery-card shadow-lg h-64" data-category="acara-keluarga">
-            <div class="h-full bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <i class="fas fa-birthday-cake text-6xl mb-4 opacity-50"></i>
-                    <p class="text-sm">Ulang Tahun</p>
-                </div>
-            </div>
-            <div class="gallery-overlay">
-                <h3 class="text-white font-bold text-lg mb-1">Ulang Tahun Kakek</h3>
-                <p class="text-gray-300 text-sm">5 Maret 2024</p>
-            </div>
-        </div>
-
-        <div class="gallery-card shadow-lg h-64" data-category="lainnya">
-            <div class="h-full bg-gradient-to-br from-indigo-500 to-blue-600 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <i class="fas fa-mosque text-6xl mb-4 opacity-50"></i>
-                    <p class="text-sm">Kegiatan Keagamaan</p>
-                </div>
-            </div>
-            <div class="gallery-overlay">
-                <h3 class="text-white font-bold text-lg mb-1">Pengajian Keluarga</h3>
-                <p class="text-gray-300 text-sm">12 Ramadan 1445H</p>
-            </div>
-        </div>
-
-        <div class="gallery-card shadow-lg h-64" data-category="pernikahan">
-            <div class="h-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <i class="fas fa-rings-wedding text-6xl mb-4 opacity-50"></i>
-                    <p class="text-sm">Lamaran</p>
-                </div>
-            </div>
-            <div class="gallery-overlay">
-                <h3 class="text-white font-bold text-lg mb-1">Acara Lamaran</h3>
-                <p class="text-gray-300 text-sm">3 April 2024</p>
-            </div>
-        </div>
-
-        <div class="gallery-card shadow-lg h-64" data-category="reuni">
-            <div class="h-full bg-gradient-to-br from-yellow-500 to-orange-600 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <i class="fas fa-campground text-6xl mb-4 opacity-50"></i>
-                    <p class="text-sm">Liburan Keluarga</p>
-                </div>
-            </div>
-            <div class="gallery-overlay">
-                <h3 class="text-white font-bold text-lg mb-1">Liburan ke Pantai</h3>
-                <p class="text-gray-300 text-sm">25 Desember 2023</p>
-            </div>
-        </div>
-
-        <div class="gallery-card shadow-lg h-64" data-category="lainnya">
-            <div class="h-full bg-gradient-to-br from-teal-500 to-green-600 flex items-center justify-center">
-                <div class="text-center text-white">
-                    <i class="fas fa-graduation-cap text-6xl mb-4 opacity-50"></i>
-                    <p class="text-sm">Wisuda</p>
-                </div>
-            </div>
-            <div class="gallery-overlay">
-                <h3 class="text-white font-bold text-lg mb-1">Wisuda Anak Keluarga</h3>
-                <p class="text-gray-300 text-sm">1 September 2023</p>
-            </div>
-        </div>
-    </div>
 
 <!-- Info Box -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+<div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 pb-16">
     <div class="mt-12 bg-blue-50 border-l-4 border-blue-700 p-6 rounded-lg">
         <div class="flex items-start">
             <i class="fas fa-info-circle text-blue-700 text-2xl mr-4 mt-1"></i>
