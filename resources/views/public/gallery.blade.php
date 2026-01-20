@@ -9,6 +9,9 @@
         overflow: hidden;
         border-radius: 12px;
         transition: transform 0.3s;
+        height: 350px;
+        display: flex;
+        flex-direction: column;
     }
     
     .gallery-card:hover {
@@ -17,28 +20,25 @@
     
     .gallery-card img {
         width: 100%;
-        height: 100%;
+        height: 250px;
         object-fit: cover;
         transition: transform 0.3s;
     }
     
     .gallery-card:hover img {
-        transform: scale(1.1);
+        transform: scale(1.05);
     }
     
     .gallery-overlay {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-        padding: 20px;
-        transform: translateY(100%);
-        transition: transform 0.3s;
+        padding: 16px;
+        background: white;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
     }
     
     .gallery-card:hover .gallery-overlay {
-        transform: translateY(0);
+        background: #f9fafb;
     }
 </style>
 @endpush
@@ -81,7 +81,7 @@
 </div>
 
 <!-- Gallery Grid -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     @if($photos->isEmpty())
         <div class="text-center py-16 bg-white rounded-2xl shadow-lg">
             <i class="fas fa-images text-gray-300 text-6xl mb-4"></i>
@@ -89,27 +89,27 @@
             <p class="text-gray-600">Album foto keluarga akan ditampilkan di sini setelah diupload oleh admin.</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="gallery-container">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="gallery-container">
             @foreach($photos as $photo)
-                <div class="gallery-card shadow-lg h-64 cursor-pointer" 
+                <div class="gallery-card shadow-lg bg-white rounded-2xl cursor-pointer" 
                      data-category="branch-{{ $photo->family_branch_id ?? 'none' }}"
                      onclick="openPhotoModal({{ json_encode($photo) }})">
-                    <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->title }}" class="h-full w-full object-cover">
+                    <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->title }}" class="h-full w-full object-cover rounded-t-2xl">
                     <div class="gallery-overlay">
-                        <h3 class="text-white font-bold text-lg mb-1">{{ $photo->title }}</h3>
-                        <p class="text-gray-300 text-sm mb-2">
+                        <h3 class="text-gray-900 font-bold text-lg mb-2">{{ $photo->title }}</h3>
+                        <p class="text-gray-600 text-sm mb-2">
                             <i class="fas fa-calendar-alt mr-1"></i>
                             {{ $photo->photo_date ? $photo->photo_date->format('d F Y') : 'Tanggal tidak diketahui' }}
                         </p>
                         @if($photo->location)
-                            <p class="text-gray-300 text-sm">
+                            <p class="text-gray-600 text-sm mb-2">
                                 <i class="fas fa-map-marker-alt mr-1"></i>
                                 {{ $photo->location }}
                             </p>
                         @endif
                         @if($photo->branch)
-                            <span class="inline-block mt-2 px-2 py-1 text-xs rounded-full" 
-                                  style="background-color: {{ $photo->branch->color_code }}20; color: {{ $photo->branch->color_code }}; border: 1px solid {{ $photo->branch->color_code }};">
+                            <span class="inline-block mt-auto px-3 py-1 text-xs rounded-full font-medium" 
+                                  style="background-color: {{ $photo->branch->color_code }}; color: white;">
                                 {{ $photo->branch->name }}
                             </span>
                         @endif

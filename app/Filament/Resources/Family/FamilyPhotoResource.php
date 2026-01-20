@@ -46,15 +46,16 @@ class FamilyPhotoResource extends Resource
               ->label('Upload Foto')
               ->image()
               ->directory('family-photos')
-              ->imageEditor()
-              ->imageEditorAspectRatios([
-                '16:9',
-                '4:3',
-                '1:1',
-              ])
+              ->disk('public')
+              ->visibility('public')
+              ->imagePreviewHeight('250')
               ->maxSize(5120) // 5MB
               ->required()
               ->columnSpanFull()
+              ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg'])
+              ->downloadable()
+              ->openable()
+              ->preserveFilenames()
               ->helperText('Format: JPG, PNG, JPEG. Maksimal 5MB'),
             Forms\Components\TextInput::make('title')
               ->required()
