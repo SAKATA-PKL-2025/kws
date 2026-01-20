@@ -9,18 +9,29 @@
         overflow: hidden;
         border-radius: 12px;
         transition: transform 0.3s;
-        height: 350px;
         display: flex;
         flex-direction: column;
+        background: white;
     }
     
     .gallery-card:hover {
         transform: translateY(-5px);
     }
     
-    .gallery-card img {
+    .gallery-image-container {
+        position: relative;
         width: 100%;
-        height: 250px;
+        padding-top: 75%; /* 4:3 aspect ratio (3/4 = 0.75 = 75%) */
+        overflow: hidden;
+        border-radius: 12px 12px 0 0;
+    }
+    
+    .gallery-card img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         object-fit: cover;
         transition: transform 0.3s;
     }
@@ -89,12 +100,14 @@
             <p class="text-gray-600">Album foto keluarga akan ditampilkan di sini setelah diupload oleh admin.</p>
         </div>
     @else
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="gallery-container">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="gallery-container">
             @foreach($photos as $photo)
-                <div class="gallery-card shadow-lg bg-white rounded-2xl cursor-pointer" 
+                <div class="gallery-card shadow-lg cursor-pointer" 
                      data-category="branch-{{ $photo->family_branch_id ?? 'none' }}"
                      onclick="openPhotoModal({{ json_encode($photo) }})">
-                    <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->title }}" class="h-full w-full object-cover rounded-t-2xl">
+                    <div class="gallery-image-container">
+                        <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->title }}">
+                    </div>
                     <div class="gallery-overlay">
                         <h3 class="text-gray-900 font-bold text-lg mb-2">{{ $photo->title }}</h3>
                         <p class="text-gray-600 text-sm mb-2">

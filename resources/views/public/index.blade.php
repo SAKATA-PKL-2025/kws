@@ -245,7 +245,7 @@
 </div>
 
 <!-- Branches Section -->
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="mb-8">
         <h2 class="text-3xl font-bold text-gray-900 mb-2 flex items-center">
             <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mr-3 shadow-lg">
@@ -256,48 +256,48 @@
         <p class="text-gray-600 ml-15">Jelajahi setiap cabang keluarga dan lihat anggota di dalamnya</p>
     </div>
 
-    <div class="grid md:grid-cols-3 gap-6">
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($branches as $branch)
             <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-blue-500 group">
                 <!-- Header with color -->
-                <div class="h-3" style="background: linear-gradient(90deg, {{ $branch->color_code }}, {{ $branch->color_code }}dd);"></div>
+                <div class="h-2" style="background: linear-gradient(90deg, {{ $branch->color_code }}, {{ $branch->color_code }}dd);"></div>
                 
                 <!-- Content -->
-                <div class="p-6">
+                <div class="p-4">
                     <!-- Branch Icon & Name -->
-                    <div class="flex items-start justify-between mb-4">
+                    <div class="flex items-start justify-between mb-3">
                         <div class="flex items-center">
-                            <div class="w-14 h-14 rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform" 
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform" 
                                  style="background-color: {{ $branch->color_code }}20;">
-                                <i class="fas fa-sitemap text-2xl" style="color: {{ $branch->color_code }};"></i>
+                                <i class="fas fa-sitemap text-xl" style="color: {{ $branch->color_code }};"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-lg text-gray-900 leading-tight">{{ $branch->name }}</h3>
+                                <h3 class="font-bold text-base text-gray-900 leading-tight">{{ $branch->name }}</h3>
                                 <p class="text-xs text-gray-500 mt-1">
                                     <i class="fas fa-user-circle mr-1"></i>{{ $branch->founder_name ?? 'Pendiri' }}
                                 </p>
                             </div>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-semibold" 
+                        <span class="px-2 py-1 rounded-full text-xs font-semibold" 
                               style="background-color: {{ $branch->color_code }}20; color: {{ $branch->color_code }};">
                             Aktif
                         </span>
                     </div>
 
                     <!-- Statistics -->
-                    <div class="grid grid-cols-3 gap-3 mb-4">
-                        <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <div class="text-2xl font-bold text-gray-900">{{ $branch->members_count }}</div>
+                    <div class="grid grid-cols-3 gap-2 mb-3">
+                        <div class="bg-gray-50 rounded-lg p-2 text-center">
+                            <div class="text-xl font-bold text-gray-900">{{ $branch->members_count }}</div>
                             <div class="text-xs text-gray-600 mt-1">Anggota</div>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <div class="text-2xl font-bold text-gray-900">
+                        <div class="bg-gray-50 rounded-lg p-2 text-center">
+                            <div class="text-xl font-bold text-gray-900">
                                 {{ $members->where('family_branch_id', $branch->id)->max('generation') ?? 0 }}
                             </div>
                             <div class="text-xs text-gray-600 mt-1">Generasi</div>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-3 text-center">
-                            <div class="text-2xl font-bold text-gray-900">
+                        <div class="bg-gray-50 rounded-lg p-2 text-center">
+                            <div class="text-xl font-bold text-gray-900">
                                 {{ $members->where('family_branch_id', $branch->id)->where('is_alive', true)->count() }}
                             </div>
                             <div class="text-xs text-gray-600 mt-1">Hidup</div>
