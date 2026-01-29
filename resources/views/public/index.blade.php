@@ -89,65 +89,90 @@
         border-color: #3b82f6;
     }
     
+    .member-card.highlighted {
+        animation: pulse-highlight 0.6s ease-in-out 5;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 8px 20px rgba(59, 130, 246, 0.3);
+        border-color: #3b82f6 !important;
+        transform: scale(1.05);
+    }
+    
+    @keyframes pulse-highlight {
+        0%, 100% {
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.5), 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+        50% {
+            box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.3), 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+    }
+
     .tree-node {
         position: relative;
-        display: inline-block;
-        margin: 0 12px;
-        vertical-align: top;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
     }
     
     .tree-children {
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        margin-top: 50px;
-        gap: 20px;
+        padding-top: 30px;
         position: relative;
     }
     
-    /* Tree lines */
-    .tree-node > .tree-children > .tree-node::before {
-        content: '';
-        position: absolute;
-        top: -50px;
-        left: 50%;
-        width: 2px;
-        height: 50px;
-        background: #93c5fd;
-        transform: translateX(-50%);
-    }
-    
+    /* Garis vertikal dari parent ke garis horizontal */
     .tree-children::before {
         content: '';
         position: absolute;
-        top: -50px;
+        top: 0;
         left: 50%;
-        right: 0;
-        height: 2px;
-        background: #93c5fd;
+        width: 2px;
+        height: 15px;
+        background-color: #93c5fd;
+    }
+    
+    /* Setiap child node */
+    .tree-children > .tree-node {
+        position: relative;
+        padding: 0 15px;
+    }
+    
+    /* Garis vertikal dari garis horizontal ke child */
+    .tree-children > .tree-node::before {
+        content: '';
+        position: absolute;
+        top: -15px;
+        left: 50%;
+        width: 2px;
+        height: 15px;
+        background-color: #93c5fd;
         transform: translateX(-50%);
     }
     
-    .tree-children::after {
+    /* Garis horizontal ke kanan (untuk semua kecuali child terakhir) */
+    .tree-children > .tree-node:not(:last-child)::after {
         content: '';
         position: absolute;
-        top: -50px;
-        left: 0;
-        right: 50%;
+        top: -15px;
+        left: 50%;
+        width: calc(100% + 30px);
         height: 2px;
-        background: #93c5fd;
-        transform: translateX(50%);
+        background-color: #93c5fd;
     }
     
-    /* Single child - straight line only */
-    .tree-children:has(> .tree-node:only-child)::before,
-    .tree-children:has(> .tree-node:only-child)::after {
+    /* Untuk single child - sembunyikan garis horizontal, perpanjang vertikal */
+    .tree-children > .tree-node:only-child::before {
+        top: -30px;
+        height: 30px;
+    }
+    
+    .tree-children > .tree-node:only-child::after {
         display: none;
     }
     
-    .tree-children:has(> .tree-node:only-child) > .tree-node::before {
-        left: 50%;
-        transform: translateX(-50%);
+    /* Sembunyikan garis vertikal dari parent jika hanya 1 anak */
+    .tree-children:has(> .tree-node:only-child)::before {
+        display: none;
     }
     
     .generation-label {
@@ -258,12 +283,9 @@
 
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
         @forelse($branches as $branch)
-            <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-blue-500 group">
-                <!-- Header with color -->
-                <div class="h-2" style="background: linear-gradient(90deg, {{ $branch->color_code }}, {{ $branch->color_code }}dd);"></div>
-                
+            <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-blue-500 group flex flex-col h-full">
                 <!-- Content -->
-                <div class="p-4">
+                <div class="p-4 flex flex-col flex-grow">
                     <!-- Branch Icon & Name -->
                     <div class="flex items-start justify-between mb-3">
                         <div class="flex items-center">
@@ -305,12 +327,12 @@
                     </div>
 
                     <!-- Recent Members Preview -->
-                    <div class="mb-4">
+                    <div class="mb-4 flex-grow">
                         <div class="text-xs font-semibold text-gray-500 mb-2 flex items-center">
                             <i class="fas fa-users mr-1"></i>
                             Anggota Terbaru
                         </div>
-                        <div class="flex -space-x-2">
+                        <div class="flex -space-x-2 min-h-[2rem]">
                             @foreach($members->where('family_branch_id', $branch->id)->take(5) as $member)
                                 <div class="w-8 h-8 rounded-full border-2 border-white bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-md"
                                      title="{{ $member->full_name }}">
@@ -346,12 +368,66 @@
 <!-- Family Tree Section -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16" id="family-tree">
     <div class="tree-container">
-        <div class="text-center mb-12">
+        <div class="text-center mb-8">
             <h2 class="text-4xl font-bold text-gray-900 mb-3">Pohon Silsilah Keluarga</h2>
             <p class="text-gray-600 text-lg">Klik pada anggota keluarga untuk melihat detail lengkap</p>
         </div>
 
-        <div id="family-tree" class="overflow-x-auto overflow-y-visible pb-4">
+        <!-- Cara Membaca Pohon Keluarga -->
+        <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8 border border-blue-100">
+            <div class="flex items-center mb-4">
+                <div class="bg-blue-600 rounded-lg p-2 mr-3">
+                    <i class="fas fa-book-open text-white"></i>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900">Cara Membaca Pohon Keluarga</h3>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-2">
+                            <i class="fas fa-arrow-down text-blue-600 text-sm"></i>
+                        </div>
+                        <span class="font-semibold text-gray-800">Arah Baca</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Baca dari <strong>atas ke bawah</strong>. Generasi tertua di atas, generasi muda di bawah.</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
+                            <i class="fas fa-sitemap text-green-600 text-sm"></i>
+                        </div>
+                        <span class="font-semibold text-gray-800">Garis Penghubung</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Garis menghubungkan <strong>orang tua</strong> dengan <strong>anak-anaknya</strong>.</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-2">
+                            <i class="fas fa-layer-group text-purple-600 text-sm"></i>
+                        </div>
+                        <span class="font-semibold text-gray-800">Generasi</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Angka generasi menunjukkan <strong>tingkat keturunan</strong> dari pendiri keluarga.</p>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm">
+                    <div class="flex items-center mb-2">
+                        <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-2">
+                            <i class="fas fa-palette text-orange-600 text-sm"></i>
+                        </div>
+                        <span class="font-semibold text-gray-800">Warna Cabang</span>
+                    </div>
+                    <p class="text-sm text-gray-600">Setiap <strong>cabang keluarga</strong> memiliki warna berbeda untuk memudahkan identifikasi.</p>
+                </div>
+            </div>
+            <div class="mt-4 p-3 bg-white/50 rounded-lg border border-blue-200">
+                <p class="text-sm text-gray-600">
+                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
+                    <strong>Tips:</strong> Klik pada kotak nama anggota untuk melihat informasi lengkap. Gunakan scroll horizontal jika pohon keluarga terlalu lebar.
+                </p>
+            </div>
+        </div>
+
+        <div id="family-tree-container" class="overflow-x-auto overflow-y-visible pb-4">
             @if($members->isEmpty())
                 <div class="text-center py-16">
                     <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
@@ -383,17 +459,18 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(1)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-user-plus text-blue-600 mr-3"></i>
-                    Bagaimana cara menambahkan anggota keluarga baru?
+                    <i class="fas fa-question-circle text-blue-600 mr-3"></i>
+                    Apa itu Silsilah Keluarga KWS?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-1"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-1">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Untuk menambahkan anggota keluarga baru, Anda perlu login ke panel admin sebagai Admin Keluarga atau Super Admin. 
-                    Setelah login, masuk ke menu "Anggota Keluarga", klik tombol "Tambah Anggota", lalu isi informasi lengkap seperti 
-                    nama, tanggal lahir, hubungan keluarga (ayah, ibu), dan cabang keluarga. Setelah data disimpan dan disetujui, 
-                    anggota baru akan otomatis muncul di pohon keluarga.
+                    <strong>KWS</strong> merupakan singkatan dari <strong>"Kumpulan Wargi Sukapura"</strong>, yang berarti 
+                    kumpulan keluarga besar dari Sukapura. Website ini adalah platform digital yang dibuat untuk mendokumentasikan 
+                    dan melestarikan sejarah keluarga besar kami. Website ini menampilkan pohon silsilah interaktif yang menghubungkan 
+                    semua anggota keluarga dari berbagai generasi, sehingga setiap anggota keluarga dapat mengenal akar dan sejarah 
+                    keluarganya dengan mudah.
                 </p>
             </div>
         </div>
@@ -402,17 +479,16 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(2)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-eye text-blue-600 mr-3"></i>
-                    Siapa yang bisa melihat data keluarga di website ini?
+                    <i class="fas fa-bullseye text-blue-600 mr-3"></i>
+                    Mengapa website ini dibuat?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-2"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-2">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Website ini terbuka untuk umum, namun hanya data anggota keluarga yang ditandai sebagai "Publik" dan berstatus 
-                    "Disetujui" yang akan ditampilkan di halaman utama. Data pribadi sensitif seperti nomor telepon dan email hanya 
-                    dapat dilihat oleh admin yang sudah login. Anda dapat mengontrol privasi setiap anggota keluarga melalui pengaturan 
-                    di panel admin.
+                    Website ini dibuat dengan tujuan untuk memperkuat ikatan antar anggota keluarga, melestarikan sejarah dan warisan keluarga 
+                    untuk generasi mendatang, serta memudahkan anggota keluarga untuk saling mengenal meskipun terpisah jarak dan waktu. 
+                    Dengan adanya dokumentasi digital ini, kisah dan silsilah keluarga tidak akan hilang seiring berjalannya waktu.
                 </p>
             </div>
         </div>
@@ -421,16 +497,16 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(3)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-edit text-blue-600 mr-3"></i>
-                    Bagaimana cara memperbarui informasi anggota keluarga?
+                    <i class="fas fa-sitemap text-blue-600 mr-3"></i>
+                    Bagaimana cara membaca pohon keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-3"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-3">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Login ke panel admin, buka menu "Anggota Keluarga", cari anggota yang ingin diperbarui, lalu klik tombol edit (ikon pensil). 
-                    Anda dapat mengubah informasi seperti alamat, pekerjaan, status pernikahan, atau menambahkan foto. Pastikan untuk 
-                    menyimpan perubahan setelah selesai. Perubahan akan langsung terlihat di pohon keluarga jika data sudah disetujui.
+                    Pohon keluarga dibaca dari atas ke bawah. Generasi tertua (pendiri keluarga) berada di paling atas, dan keturunannya 
+                    tersusun ke bawah. Garis penghubung menunjukkan hubungan orang tua dan anak. Setiap cabang keluarga memiliki warna 
+                    berbeda untuk memudahkan identifikasi. Anda bisa mengklik kotak nama untuk melihat informasi detail setiap anggota.
                 </p>
             </div>
         </div>
@@ -439,17 +515,16 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(4)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-shield-alt text-blue-600 mr-3"></i>
-                    Apakah data keluarga saya aman?
+                    <i class="fas fa-search text-blue-600 mr-3"></i>
+                    Bagaimana cara mencari anggota keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-4"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-4">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Ya, keamanan data adalah prioritas kami. Website ini menggunakan enkripsi SSL untuk melindungi data saat ditransfer. 
-                    Akses ke panel admin dilindungi dengan sistem autentikasi berbasis role, dimana hanya pengguna dengan akun yang 
-                    terverifikasi yang dapat login. Data sensitif disimpan dengan aman di database dan tidak dapat diakses oleh publik. 
-                    Setiap perubahan data juga tercatat dalam sistem untuk audit trail.
+                    Gunakan kotak pencarian di bagian atas halaman (navbar). Ketik nama anggota keluarga yang ingin dicari, 
+                    dan hasil pencarian akan muncul secara otomatis. Klik pada nama yang muncul untuk langsung menuju ke posisi 
+                    anggota tersebut di pohon keluarga. Anda juga bisa mencari berdasarkan nama panggilan atau tempat lahir.
                 </p>
             </div>
         </div>
@@ -458,17 +533,17 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(5)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-tree text-blue-600 mr-3"></i>
-                    Bagaimana pohon keluarga diperbarui secara otomatis?
+                    <i class="fas fa-code-branch text-blue-600 mr-3"></i>
+                    Apa yang dimaksud dengan cabang keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-5"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-5">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Pohon keluarga akan otomatis diperbarui ketika admin menambahkan anggota baru yang sudah disetujui dan ditandai sebagai 
-                    publik. Sistem secara otomatis membuat koneksi berdasarkan relasi ayah, ibu, dan pasangan yang telah diinput. 
-                    Anda hanya perlu me-refresh halaman untuk melihat perubahan terbaru. Pohon akan secara dinamis menyusun generasi dan 
-                    cabang keluarga sesuai dengan data yang tersedia.
+                    Cabang keluarga adalah pembagian silsilah berdasarkan keturunan dari anak-anak pendiri keluarga. Misalnya, 
+                    "Cabang Keturunan Anak Pertama" berisi semua keturunan dari anak pertama pendiri. Setiap cabang ditandai dengan 
+                    warna berbeda agar mudah dibedakan di pohon keluarga. Pembagian ini membantu mengorganisir dan memahami struktur 
+                    keluarga besar dengan lebih baik.
                 </p>
             </div>
         </div>
@@ -477,17 +552,16 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(6)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-exclamation-triangle text-blue-600 mr-3"></i>
-                    Apa yang harus dilakukan jika menemukan kesalahan data?
+                    <i class="fas fa-user-plus text-blue-600 mr-3"></i>
+                    Bagaimana jika nama saya belum ada di pohon keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-6"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-6">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Jika Anda menemukan kesalahan data seperti nama yang salah eja, tanggal lahir yang tidak tepat, atau hubungan keluarga 
-                    yang keliru, segera hubungi Admin Keluarga atau Super Admin melalui email di info@silsilahkws.com. Sertakan detail 
-                    lengkap tentang kesalahan yang ditemukan beserta data yang benar. Admin akan memverifikasi dan memperbaiki data 
-                    secepat mungkin untuk menjaga akurasi informasi keluarga.
+                    Jika Anda adalah anggota keluarga tetapi nama Anda belum tercantum, silakan hubungi admin keluarga melalui 
+                    email di info@silsilahkws.com. Sertakan informasi lengkap seperti nama lengkap, tanggal lahir, nama orang tua, 
+                    dan cabang keluarga Anda. Admin akan memverifikasi dan menambahkan data Anda ke dalam sistem.
                 </p>
             </div>
         </div>
@@ -496,17 +570,16 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(7)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-sign-in-alt text-blue-600 mr-3"></i>
-                    Bagaimana cara mengakses halaman admin?
+                    <i class="fas fa-shield-alt text-blue-600 mr-3"></i>
+                    Apakah data pribadi saya aman?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-7"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-7">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Akses ke halaman admin hanya diberikan kepada anggota keluarga yang ditunjuk sebagai Admin Keluarga atau Super Admin. 
-                    Jika Anda belum memiliki akun, hubungi Super Admin untuk mendapatkan kredensial login (email dan password). 
-                    Setelah mendapatkan akun, Anda dapat login melalui URL khusus yang akan diberikan oleh Super Admin. 
-                    Untuk keamanan, jangan membagikan kredensial login Anda kepada orang lain.
+                    Ya, keamanan dan privasi data adalah prioritas kami. Hanya informasi dasar yang ditampilkan di halaman publik 
+                    (nama, tahun lahir, dan hubungan keluarga). Data sensitif seperti alamat lengkap, nomor telepon, dan email 
+                    tidak ditampilkan kepada publik. Website ini juga dilindungi dengan enkripsi SSL untuk keamanan data.
                 </p>
             </div>
         </div>
@@ -530,7 +603,7 @@
 </div>
 
 <!-- Member Detail Modal -->
-<div id="member-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+<div id="member-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 items-center justify-center p-4">
     <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
         <div class="p-6">
             <div class="flex justify-between items-start mb-4">
@@ -591,7 +664,7 @@
         
         let html = `
             <div class="tree-node">
-                <div class="member-card" onclick="showMemberDetail('${member.id}')" style="border-color: ${branchColor}">
+                <div class="member-card" data-member-id="${member.id}" onclick="showMemberDetail('${member.id}')" style="border-color: ${branchColor}">
                     <div class="text-base font-bold text-gray-900 leading-tight">${member.full_name}</div>
                     <div class="text-xs text-gray-500 mt-1">${member.nickname || ''}</div>
                     ${member.birth_date ? `<div class="text-xs text-gray-400">Lahir: ${member.birth_date.split('-')[0]}</div>` : ''}
@@ -645,7 +718,7 @@
         treeRoot.innerHTML = html;
         
         // Scroll to center horizontally
-        const container = document.getElementById('family-tree');
+        const container = document.getElementById('family-tree-container');
         if (container) {
             const scrollWidth = container.scrollWidth;
             const clientWidth = container.clientWidth;
@@ -752,12 +825,16 @@
         `;
         
         document.getElementById('modal-content').innerHTML = content;
-        document.getElementById('member-modal').classList.remove('hidden');
+        const modal = document.getElementById('member-modal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
     }
     
     // Close modal
     function closeModal() {
-        document.getElementById('member-modal').classList.add('hidden');
+        const modal = document.getElementById('member-modal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
     }
     
     // Close modal when clicking outside

@@ -7,15 +7,18 @@
     .gallery-card {
         position: relative;
         overflow: hidden;
-        border-radius: 12px;
-        transition: transform 0.3s;
+        border-radius: 16px;
+        transition: all 0.3s;
         display: flex;
         flex-direction: column;
         background: white;
+        border: 2px solid transparent;
     }
     
     .gallery-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        border-color: #3b82f6;
     }
     
     .gallery-image-container {
@@ -23,7 +26,7 @@
         width: 100%;
         padding-top: 75%; /* 4:3 aspect ratio (3/4 = 0.75 = 75%) */
         overflow: hidden;
-        border-radius: 12px 12px 0 0;
+        border-radius: 14px 14px 0 0;
     }
     
     .gallery-card img {
@@ -56,48 +59,69 @@
 
 @section('content')
 <!-- Hero Section -->
-<div class="hero-pattern text-white py-20">
-    <div class="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold mb-4">
-            <i class="fas fa-images mr-3"></i>
-            Galeri Foto Keluarga
-        </h1>
-        <p class="text-xl text-blue-100">
-            Momen-momen berharga dan kenangan keluarga kami
-        </p>
+<div class="hero-pattern text-white py-32 pt-40 relative">
+    <!-- Floating Icons Background -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="floating-icon absolute top-20 left-10 opacity-20">
+            <i class="fas fa-images text-6xl"></i>
+        </div>
+        <div class="floating-icon absolute top-40 right-20 opacity-20" style="animation-delay: 1s">
+            <i class="fas fa-camera text-5xl"></i>
+        </div>
+        <div class="floating-icon absolute bottom-20 left-1/4 opacity-20" style="animation-delay: 2s">
+            <i class="fas fa-photo-video text-4xl"></i>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="text-center">
+            <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+                Galeri Foto Keluarga
+            </h1>
+            <p class="text-lg text-blue-100 mb-8 leading-relaxed max-w-3xl mx-auto">
+                Momen-momen berharga dan kenangan keluarga kami.<br>
+                Dokumentasi visual dari setiap perayaan dan kebersamaan Kumpulan Wargi Sukapura.
+            </p>
+        </div>
     </div>
 </div>
 
 <!-- Filter Section -->
-<div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 py-8">
-    <div class="bg-white rounded-lg shadow-sm p-6">
-        <div class="flex flex-wrap items-center gap-4">
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-filter text-gray-600"></i>
-                <span class="font-semibold text-gray-900">Filter Cabang:</span>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div class="mb-4">
+            <div class="flex items-center space-x-2 mb-4">
+                <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fas fa-filter text-white"></i>
+                </div>
+                <span class="font-semibold text-gray-900 text-lg">Filter Cabang:</span>
             </div>
-            <button class="px-4 py-2 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition filter-btn active" data-filter="all">
-                <i class="fas fa-images mr-2"></i>
-                Semua ({{ $photos->count() }})
-            </button>
-            @foreach($branches as $branch)
-                <button class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition filter-btn" 
-                        data-filter="branch-{{ $branch->id }}"
-                        style="border-left: 4px solid {{ $branch->color_code }};">
-                    {{ $branch->name }} ({{ $photos->where('family_branch_id', $branch->id)->count() }})
+            <div class="flex flex-wrap gap-3">
+                <button class="px-5 py-2.5 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg filter-btn active font-medium" data-filter="all">
+                    <i class="fas fa-images mr-2"></i>
+                    Semua ({{ $photos->count() }})
                 </button>
-            @endforeach
+                @foreach($branches as $branch)
+                    <button class="px-5 py-2.5 bg-white text-gray-700 rounded-xl hover:shadow-md transition-all filter-btn font-medium border-2 border-gray-200 hover:border-gray-300" 
+                            data-filter="branch-{{ $branch->id }}">
+                        <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ $branch->color_code }};"></span>
+                        {{ $branch->name }} ({{ $photos->where('family_branch_id', $branch->id)->count() }})
+                    </button>
+                @endforeach
+            </div>
         </div>
     </div>
 </div>
 
 <!-- Gallery Grid -->
-<div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 pb-8">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
     @if($photos->isEmpty())
-        <div class="text-center py-16 bg-white rounded-2xl shadow-lg">
-            <i class="fas fa-images text-gray-300 text-6xl mb-4"></i>
-            <h3 class="text-2xl font-bold text-gray-900 mb-2">Belum Ada Foto</h3>
-            <p class="text-gray-600">Album foto keluarga akan ditampilkan di sini setelah diupload oleh admin.</p>
+        <div class="text-center py-20 bg-white rounded-2xl shadow-xl border-2 border-gray-100">
+            <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-images text-gray-400 text-5xl"></i>
+            </div>
+            <h3 class="text-3xl font-bold text-gray-900 mb-3">Belum Ada Foto</h3>
+            <p class="text-gray-600 text-lg">Album foto keluarga akan ditampilkan di sini setelah diupload oleh admin.</p>
         </div>
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="gallery-container">
@@ -134,7 +158,7 @@
 </div>
 
 <!-- Photo Modal -->
-<div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 flex items-center justify-center p-4" onclick="closePhotoModal()">
+<div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 items-center justify-center p-4" onclick="closePhotoModal()">
     <button class="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition" onclick="closePhotoModal()">
         <i class="fas fa-times"></i>
     </button>
@@ -191,18 +215,20 @@
 </div>
 
 <!-- Info Box -->
-<div class="max-w-6xl mx-auto px-6 sm:px-8 lg:px-12 pb-16">
-    <div class="mt-12 bg-blue-50 border-l-4 border-blue-700 p-6 rounded-lg">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
+    <div class="mt-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-l-4 border-blue-700 p-8 rounded-2xl shadow-lg">
         <div class="flex items-start">
-            <i class="fas fa-info-circle text-blue-700 text-2xl mr-4 mt-1"></i>
+            <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mr-4 shadow-md flex-shrink-0">
+                <i class="fas fa-info-circle text-white text-xl"></i>
+            </div>
             <div>
-                <h3 class="text-lg font-semibold text-gray-900 mb-2">Informasi Galeri</h3>
-                <p class="text-gray-700 mb-3">
+                <h3 class="text-xl font-bold text-gray-900 mb-3">Informasi Galeri</h3>
+                <p class="text-gray-700 mb-4 leading-relaxed">
                     Galeri foto ini menampilkan momen-momen penting dan kenangan berharga keluarga kami. 
                     Foto-foto ini dikelola oleh admin keluarga dan akan terus diperbarui dengan acara-acara terbaru.
                 </p>
-                <p class="text-gray-700">
-                    <strong>Untuk Admin Keluarga:</strong> Login ke panel admin untuk menambahkan atau mengelola album foto. 
+                <p class="text-gray-700 leading-relaxed">
+                    <strong class="text-blue-700">Untuk Admin Keluarga:</strong> Login ke panel admin untuk menambahkan atau mengelola album foto. 
                     Pastikan foto yang diunggah sudah mendapat persetujuan dari keluarga yang bersangkutan.
                 </p>
             </div>
@@ -225,10 +251,10 @@
                 
                 // Update active button
                 filterButtons.forEach(btn => {
-                    btn.classList.remove('active', 'bg-blue-700', 'text-white');
+                    btn.classList.remove('active', 'bg-gradient-to-br', 'from-blue-600', 'to-blue-700', 'text-white');
                     btn.classList.add('bg-gray-100', 'text-gray-700');
                 });
-                this.classList.add('active', 'bg-blue-700', 'text-white');
+                this.classList.add('active', 'bg-gradient-to-br', 'from-blue-600', 'to-blue-700', 'text-white');
                 this.classList.remove('bg-gray-100', 'text-gray-700');
 
                 // Filter gallery items
@@ -300,12 +326,14 @@
 
         // Show modal
         modal.classList.remove('hidden');
+        modal.classList.add('flex');
         document.body.style.overflow = 'hidden'; // Prevent scrolling
     }
 
     function closePhotoModal() {
         const modal = document.getElementById('photoModal');
         modal.classList.add('hidden');
+        modal.classList.remove('flex');
         document.body.style.overflow = ''; // Restore scrolling
     }
 

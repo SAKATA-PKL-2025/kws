@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [PublicController::class, 'index'])->name('home');
 Route::get('/tentang', [PublicController::class, 'about'])->name('about');
 Route::get('/galeri', [PublicController::class, 'gallery'])->name('gallery');
+Route::get('/cari-anggota', [PublicController::class, 'search'])->name('search.members');
 Route::get('/kebijakan-privasi', function () {
     return view('public.privacy');
 })->name('privacy');

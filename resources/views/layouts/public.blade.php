@@ -100,9 +100,9 @@
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-50">
     <!-- Navbar -->
-    <nav class="fixed top-0 left-0 right-0 z-50 px-8 pt-4 pb-2">
+    <nav class="fixed top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-8 pt-4 pb-2">
         <div class="floating-navbar">
-            <div class="max-w-6xl mx-auto px-4 lg:px-6">
+            <div class="max-w-6xl mx-auto px-3 sm:px-4 lg:px-6">
                 <div class="flex justify-between items-center h-14">
                     <!-- Logo & Brand -->
                     <div class="flex items-center flex-shrink-0">
@@ -118,11 +118,13 @@
 
                     <!-- Search Bar (Desktop) -->
                     <div class="hidden lg:block flex-1 max-w-sm mx-6">
-                        <div class="search-box">
-                            <input type="text" placeholder="Cari anggota keluarga..." class="w-full">
+                        <div class="search-box relative">
+                            <input type="text" id="search-desktop" placeholder="Cari anggota keluarga..." class="w-full" autocomplete="off">
                             <button type="button">
                                 <i class="fas fa-search"></i>
                             </button>
+                            <!-- Search Results Dropdown -->
+                            <div id="search-results-desktop" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-96 overflow-y-auto"></div>
                         </div>
                     </div>
 
@@ -148,12 +150,14 @@
                 </div>
                 
                 <!-- Mobile Search -->
-                <div class="lg:hidden pb-2 px-2">
-                    <div class="search-box">
-                        <input type="text" placeholder="Cari anggota keluarga..." class="w-full">
+                <div class="lg:hidden pb-2">
+                    <div class="search-box relative">
+                        <input type="text" id="search-mobile" placeholder="Cari anggota keluarga..." class="w-full" autocomplete="off">
                         <button type="button">
                             <i class="fas fa-search"></i>
                         </button>
+                        <!-- Search Results Dropdown -->
+                        <div id="search-results-mobile" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 max-h-96 overflow-y-auto"></div>
                     </div>
                 </div>
             </div>
@@ -204,12 +208,12 @@
                         </div>
                         <div>
                             <div class="text-2xl font-bold text-white">KWS</div>
-                            <div class="text-sm text-gray-300">Silsilah Keluarga</div>
+                            <div class="text-sm text-gray-300">Kumpulan Wargi Sukapura</div>
                         </div>
                     </div>
                     <p class="text-gray-300 leading-relaxed mb-6 text-sm">
                         Dokumentasi lengkap silsilah keluarga untuk generasi sekarang dan yang akan datang. 
-                        Menjaga warisan keluarga dengan teknologi modern.
+                        Menjaga warisan keluarga Wargi Sukapura dengan teknologi modern.
                     </p>
                     <div class="flex space-x-3">
                         <a href="#" class="bg-gray-700 hover:bg-gray-600 transition w-10 h-10 rounded-lg flex items-center justify-center">
@@ -298,7 +302,7 @@
                             </div>
                             <div>
                                 <div class="text-xs text-gray-400 mb-1">Lokasi</div>
-                                <span class="text-gray-300 text-sm">Indonesia</span>
+                                <span class="text-gray-300 text-sm">Sukapura, Indonesia</span>
                             </div>
                         </li>
                     </ul>
@@ -309,7 +313,7 @@
             <div class="border-t border-gray-700 pt-8">
                 <div class="flex flex-col md:flex-row justify-between items-center gap-4">
                     <div class="text-gray-400 text-sm">
-                        <p>&copy; {{ date('Y') }} <span class="font-semibold text-white">Silsilah Keluarga KWS</span>. Hak Cipta Dilindungi.</p>
+                        <p>&copy; {{ date('Y') }} <span class="font-semibold text-white">Kumpulan Wargi Sukapura (KWS)</span>. Hak Cipta Dilindungi.</p>
                     </div>
                     <div class="flex items-center gap-6 text-sm">
                         <a href="{{ route('privacy') }}" class="text-gray-300 hover:text-white transition">Kebijakan Privasi</a>
@@ -333,6 +337,175 @@
         document.addEventListener('click', (e) => {
             if (!mobileMenuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
                 mobileMenu.classList.add('hidden');
+            }
+        });
+
+        // Search functionality
+        const searchUrl = "{{ route('search.members') }}";
+        let searchTimeout;
+
+        function initSearch(inputId, resultsId) {
+            const searchInput = document.getElementById(inputId);
+            const searchResults = document.getElementById(resultsId);
+
+            if (!searchInput || !searchResults) return;
+
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                clearTimeout(searchTimeout);
+                
+                if (query.length < 2) {
+                    searchResults.classList.add('hidden');
+                    searchResults.innerHTML = '';
+                    return;
+                }
+
+                searchTimeout = setTimeout(() => {
+                    fetch(`${searchUrl}?q=${encodeURIComponent(query)}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                searchResults.innerHTML = `
+                                    <div class="p-4 text-center text-gray-500">
+                                        <i class="fas fa-search text-2xl mb-2 text-gray-300"></i>
+                                        <p class="text-sm">Tidak ditemukan anggota dengan nama "${query}"</p>
+                                    </div>
+                                `;
+                            } else {
+                                searchResults.innerHTML = data.map(member => `
+                                    <a href="#member-${member.id}" onclick="highlightMember('${member.id}')" class="flex items-center p-3 hover:bg-blue-50 transition cursor-pointer border-b border-gray-50 last:border-0">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white font-bold text-sm"
+                                             style="background: ${member.branch_color || '#3b82f6'}">
+                                            ${member.full_name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-semibold text-gray-900 text-sm truncate">${member.full_name}</div>
+                                            <div class="flex items-center text-xs text-gray-500 mt-0.5">
+                                                <span class="flex items-center">
+                                                    <i class="fas fa-${member.gender === 'male' ? 'mars text-blue-500' : 'venus text-pink-500'} mr-1"></i>
+                                                    ${member.gender === 'male' ? 'Laki-laki' : 'Perempuan'}
+                                                </span>
+                                                ${member.branch_name ? `<span class="mx-1.5">•</span><span class="truncate">${member.branch_name}</span>` : ''}
+                                            </div>
+                                        </div>
+                                        <div class="ml-2 flex flex-col items-end">
+                                            <span class="text-xs px-2 py-0.5 rounded-full ${member.is_alive ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}">
+                                                ${member.is_alive ? 'Hidup' : 'Almarhum'}
+                                            </span>
+                                            ${member.generation ? `<span class="text-xs text-gray-400 mt-1">Gen. ${member.generation}</span>` : ''}
+                                        </div>
+                                    </a>
+                                `).join('');
+                            }
+                            searchResults.classList.remove('hidden');
+                        })
+                        .catch(error => {
+                            console.error('Search error:', error);
+                            searchResults.innerHTML = `
+                                <div class="p-4 text-center text-red-500">
+                                    <i class="fas fa-exclamation-circle text-2xl mb-2"></i>
+                                    <p class="text-sm">Terjadi kesalahan saat mencari</p>
+                                </div>
+                            `;
+                            searchResults.classList.remove('hidden');
+                        });
+                }, 300);
+            });
+
+            // Hide results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.add('hidden');
+                }
+            });
+
+            // Show results when focusing on input if there's content
+            searchInput.addEventListener('focus', function() {
+                if (this.value.trim().length >= 2 && searchResults.innerHTML.trim() !== '') {
+                    searchResults.classList.remove('hidden');
+                }
+            });
+        }
+
+        // Initialize search for both desktop and mobile
+        initSearch('search-desktop', 'search-results-desktop');
+        initSearch('search-mobile', 'search-results-mobile');
+
+        // Function to highlight member in the family tree
+        function highlightMember(memberId) {
+            // Close search results
+            document.getElementById('search-results-desktop')?.classList.add('hidden');
+            document.getElementById('search-results-mobile')?.classList.add('hidden');
+            
+            // Clear search inputs
+            const desktopInput = document.getElementById('search-desktop');
+            const mobileInput = document.getElementById('search-mobile');
+            if (desktopInput) desktopInput.value = '';
+            if (mobileInput) mobileInput.value = '';
+
+            // Check if we're on the homepage (where family tree exists)
+            const familyTree = document.getElementById('family-tree');
+            
+            if (!familyTree) {
+                // If not on homepage, redirect to homepage with member ID in URL
+                window.location.href = "{{ route('home') }}#member-" + memberId;
+                return;
+            }
+
+            // Try to find the member node in the family tree
+            const memberNode = document.querySelector(`[data-member-id="${memberId}"]`);
+            if (memberNode) {
+                // First scroll to family tree section
+                familyTree.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                
+                // Wait for scroll to complete, then scroll horizontally to member and highlight
+                setTimeout(() => {
+                    // Get the container for horizontal scroll
+                    const container = document.getElementById('family-tree');
+                    
+                    // Calculate horizontal scroll position to center the member
+                    if (container) {
+                        const memberRect = memberNode.getBoundingClientRect();
+                        const containerRect = container.getBoundingClientRect();
+                        const scrollLeft = container.scrollLeft + memberRect.left - containerRect.left - (containerRect.width / 2) + (memberRect.width / 2);
+                        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+                    }
+                    
+                    // Add highlight class
+                    memberNode.classList.add('highlighted');
+                    
+                    // Remove previous highlights
+                    document.querySelectorAll('.member-card.highlighted').forEach(el => {
+                        if (el !== memberNode) {
+                            el.classList.remove('highlighted');
+                        }
+                    });
+                    
+                    // Remove highlight after animation
+                    setTimeout(() => {
+                        memberNode.classList.remove('highlighted');
+                    }, 4000);
+                }, 500);
+            } else {
+                // If not found, scroll to family tree section
+                familyTree.scrollIntoView({ behavior: 'smooth' });
+                // Show alert that member not found in tree
+                setTimeout(() => {
+                    alert('Anggota keluarga ditemukan di database, tetapi tidak ditampilkan di pohon keluarga saat ini.');
+                }, 600);
+            }
+        }
+
+        // Check for member ID in URL hash on page load
+        window.addEventListener('load', function() {
+            const hash = window.location.hash;
+            if (hash && hash.startsWith('#member-')) {
+                const memberId = hash.replace('#member-', '');
+                // Wait a bit for the page to fully render
+                setTimeout(() => {
+                    highlightMember(memberId);
+                }, 500);
             }
         });
     </script>
