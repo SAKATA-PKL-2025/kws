@@ -7,6 +7,7 @@ A comprehensive web-based family tree management system developed for genealogic
 ## Key Features
 
 ### Family Management
+
 - Complete family member profile management with biographical information
 - Multi-generational relationship tracking (parents, spouses, children)
 - Family branch organization and hierarchy management
@@ -14,6 +15,7 @@ A comprehensive web-based family tree management system developed for genealogic
 - Advanced search and filtering capabilities
 
 ### Genealogical Features
+
 - Interactive family tree visualization
 - Generation-based member categorization
 - Comprehensive relationship mapping (father, mother, spouse connections)
@@ -21,6 +23,7 @@ A comprehensive web-based family tree management system developed for genealogic
 - Privacy controls and access management
 
 ### E-Commerce Integration
+
 - Product catalog management
 - Category-based product organization
 - Inventory and stock management
@@ -28,6 +31,7 @@ A comprehensive web-based family tree management system developed for genealogic
 - SKU-based product tracking
 
 ### Administrative Interface
+
 - Filament-powered admin panel for streamlined management
 - Role-based access control using Spatie Permissions
 - User authentication and authorization
@@ -35,6 +39,7 @@ A comprehensive web-based family tree management system developed for genealogic
 - Dashboard with analytics and insights
 
 ### Public Features
+
 - Public family tree browsing
 - Member search functionality
 - Photo gallery viewing
@@ -46,12 +51,14 @@ A comprehensive web-based family tree management system developed for genealogic
 ### Technology Stack
 
 **Backend Framework**
+
 - Laravel 10.x (PHP 8.1+)
 - MySQL/MariaDB database
 - Repository pattern implementation
 - Service-oriented architecture
 
 **Frontend Technologies**
+
 - Livewire for dynamic components
 - Alpine.js for interactive elements
 - Tailwind CSS for responsive styling
@@ -59,11 +66,13 @@ A comprehensive web-based family tree management system developed for genealogic
 - Vite for asset bundling
 
 **Admin Panel**
+
 - Filament 3.2 administration framework
 - Custom resource management
 - Policy-based authorization
 
 **Key Dependencies**
+
 - Spatie Laravel Permission for role management
 - Laravel Sanctum for API authentication
 - Laravel Breeze for authentication scaffolding
@@ -73,11 +82,13 @@ A comprehensive web-based family tree management system developed for genealogic
 ### Design Patterns
 
 **Repository Pattern**
+
 - `CategoryRepository` for category data access
 - `ProductRepository` for product operations
 - Interface-based contracts for flexibility
 
 **Traits**
+
 - `HasPagination` for consistent pagination
 - `HasSearch` for search functionality
 - `HasSort` for sorting capabilities
@@ -85,12 +96,14 @@ A comprehensive web-based family tree management system developed for genealogic
 - `UuidTrait` for UUID primary keys
 
 **Policies**
+
 - `FamilyBranchPolicy` for branch access control
 - `FamilyMemberPolicy` for member data authorization
 
 ## System Requirements
 
 ### Server Requirements
+
 - PHP >= 8.1
 - MySQL >= 5.7 or MariaDB >= 10.3
 - Composer 2.x
@@ -98,6 +111,7 @@ A comprehensive web-based family tree management system developed for genealogic
 - NPM or Yarn
 
 ### PHP Extensions
+
 - BCMath
 - Ctype
 - Fileinfo
@@ -112,29 +126,35 @@ A comprehensive web-based family tree management system developed for genealogic
 ## Installation Guide
 
 ### 1. Clone Repository
+
 ```bash
-git clone <repository-url>
+git clone https://github.com/SAKATA-PKL-2025/kws.git
 cd kws
 ```
 
 ### 2. Install PHP Dependencies
+
 ```bash
 composer install
 ```
 
 ### 3. Install JavaScript Dependencies
+
 ```bash
 npm install
 ```
 
 ### 4. Environment Configuration
+
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
 ### 5. Database Configuration
+
 Edit `.env` file with your database credentials:
+
 ```
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
@@ -145,27 +165,32 @@ DB_PASSWORD=your_database_password
 ```
 
 ### 6. Database Migration and Seeding
+
 ```bash
 php artisan migrate
 php artisan db:seed
 ```
 
 ### 7. Storage Linking
+
 ```bash
 php artisan storage:link
 ```
 
 ### 8. Build Frontend Assets
+
 ```bash
 npm run build
 ```
 
 For development:
+
 ```bash
 npm run dev
 ```
 
 ### 9. Run Application
+
 ```bash
 php artisan serve
 ```
@@ -175,7 +200,9 @@ Access the application at `http://localhost:8000`
 ## Configuration
 
 ### Admin Panel Access
+
 Create an admin user:
+
 ```bash
 php artisan make:filament-user
 ```
@@ -183,37 +210,47 @@ php artisan make:filament-user
 Access admin panel at: `http://localhost:8000/admin`
 
 ### Permission Setup
+
 The system uses Spatie Laravel Permission. Configure roles and permissions:
+
 ```bash
 php artisan permission:cache-reset
 ```
 
 ### File Storage
+
 Configure storage disk in `config/filesystems.php`:
+
 - Public disk for accessible files
 - Private disk for protected content
 
 ## Development
 
 ### Code Standards
+
 - PSR-12 coding standard
 - Laravel best practices
 - Repository pattern for data access
 - Service classes for business logic
 
 ### Testing
+
 Run PHPUnit tests:
+
 ```bash
 php artisan test
 ```
 
 Or using Maven wrapper (if configured):
+
 ```bash
 mvn test
 ```
 
 ### Code Quality
+
 Run Laravel Pint for code formatting:
+
 ```bash
 ./vendor/bin/pint
 ```
@@ -259,6 +296,7 @@ routes/              # Application routes
 The application provides RESTful API endpoints for integration. API authentication is handled via Laravel Sanctum.
 
 ### Authentication
+
 - Token-based authentication
 - Sanctum middleware protection
 - CORS configuration available in `config/cors.php`
@@ -266,6 +304,7 @@ The application provides RESTful API endpoints for integration. API authenticati
 ## Security
 
 ### Security Features
+
 - CSRF protection on all forms
 - XSS protection via Blade templating
 - SQL injection prevention through Eloquent ORM
@@ -274,6 +313,7 @@ The application provides RESTful API endpoints for integration. API authenticati
 - Policy-based authorization
 
 ### Best Practices
+
 - Regular dependency updates
 - Environment variable usage for sensitive data
 - HTTPS enforcement in production
@@ -283,6 +323,7 @@ The application provides RESTful API endpoints for integration. API authenticati
 ## Deployment
 
 ### Production Checklist
+
 1. Set `APP_ENV=production` in `.env`
 2. Set `APP_DEBUG=false` in `.env`
 3. Configure proper `APP_URL`
@@ -296,13 +337,17 @@ The application provides RESTful API endpoints for integration. API authenticati
 11. Set up scheduled tasks via cron
 
 ### Queue Configuration
+
 For production environments, configure queue workers:
+
 ```bash
 php artisan queue:work --tries=3
 ```
 
 ### Task Scheduling
+
 Add to crontab:
+
 ```bash
 * * * * * cd /path-to-project && php artisan schedule:run >> /dev/null 2>&1
 ```
@@ -312,12 +357,14 @@ Add to crontab:
 ### Common Issues
 
 **Storage Permission Errors**
+
 ```bash
 chmod -R 775 storage bootstrap/cache
 chown -R www-data:www-data storage bootstrap/cache
 ```
 
 **Cache Issues**
+
 ```bash
 php artisan cache:clear
 php artisan config:clear
@@ -326,11 +373,13 @@ php artisan view:clear
 ```
 
 **Database Connection Errors**
+
 - Verify database credentials in `.env`
 - Check MySQL service status
 - Verify database exists
 
 **Asset Build Failures**
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
@@ -340,12 +389,14 @@ npm run build
 ## Performance Optimization
 
 ### Database Optimization
+
 - Use eager loading to prevent N+1 queries
 - Index frequently queried columns
 - Use database query caching
 - Implement pagination for large datasets
 
 ### Application Optimization
+
 - Enable OPcache in production
 - Use Redis for session and cache storage
 - Implement CDN for static assets
@@ -356,6 +407,7 @@ npm run build
 Contributions are managed internally by Sakata Innovation Centre development team.
 
 ### Development Workflow
+
 1. Create feature branch from `development`
 2. Implement changes following code standards
 3. Write tests for new functionality
@@ -377,6 +429,7 @@ This software is proprietary and confidential. See LICENSE file for complete ter
 Developed and maintained by Sakata Innovation Centre.
 
 ### Third-Party Packages
+
 - Laravel Framework (MIT License)
 - Filament Admin Panel (MIT License)
 - Spatie Laravel Permission (MIT License)
@@ -387,6 +440,7 @@ Developed and maintained by Sakata Innovation Centre.
 ## Changelog
 
 ### Version 1.0.0
+
 - Initial release
 - Family tree management system
 - Product catalog integration
