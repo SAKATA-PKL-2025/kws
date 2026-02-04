@@ -95,12 +95,30 @@ class FamilyMemberResource extends Resource
                             ->label('Ayah')
                             ->relationship('father', 'full_name', fn(Builder $query) => $query->where('gender', 'male'))
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $father = FamilyMember::find($state);
+                                    if ($father && $father->spouse_id) {
+                                        $set('mother_id', $father->spouse_id);
+                                    }
+                                }
+                            }),
                         Forms\Components\Select::make('mother_id')
                             ->label('Ibu')
                             ->relationship('mother', 'full_name', fn(Builder $query) => $query->where('gender', 'female'))
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $mother = FamilyMember::find($state);
+                                    if ($mother && $mother->spouse_id) {
+                                        $set('father_id', $mother->spouse_id);
+                                    }
+                                }
+                            }),
                         Forms\Components\TextInput::make('generation')
                             ->required()
                             ->numeric()

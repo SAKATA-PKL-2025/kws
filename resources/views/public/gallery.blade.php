@@ -216,7 +216,7 @@
 
 <!-- Info Box -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
-    <div class="mt-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 border-l-4 border-blue-700 p-8 rounded-2xl shadow-lg">
+    <div class="mt-12 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-8 rounded-2xl shadow-lg">
         <div class="flex items-start">
             <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mr-4 shadow-md flex-shrink-0">
                 <i class="fas fa-info-circle text-white text-xl"></i>
