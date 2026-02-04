@@ -82,6 +82,7 @@ class FamilyMemberResource extends Resource
                     ])->columns(2),
 
                 Forms\Components\Section::make('Cabang & Relasi Keluarga')
+                    ->description('Isi data orang tua hanya jika anggota ini adalah anak dari pasangan yang sudah ada')
                     ->schema([
                         Forms\Components\Select::make('family_branch_id')
                             ->label('Cabang Keluarga')
@@ -91,45 +92,113 @@ class FamilyMemberResource extends Resource
                             ->preload()
                             ->default($adminBranch?->id)
                             ->disabled(!$isSuperAdmin),
-                        Forms\Components\Select::make('father_id')
-                            ->label('Ayah')
-                            ->relationship('father', 'full_name', fn(Builder $query) => $query->where('gender', 'male'))
-                            ->searchable()
-                            ->preload()
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                if ($state) {
-                                    $father = FamilyMember::find($state);
-                                    if ($father && $father->spouse_id) {
-                                        $set('mother_id', $father->spouse_id);
-                                    }
-                                }
-                            }),
-                        Forms\Components\Select::make('mother_id')
-                            ->label('Ibu')
-                            ->relationship('mother', 'full_name', fn(Builder $query) => $query->where('gender', 'female'))
-                            ->searchable()
-                            ->preload()
-                            ->reactive()
-                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                if ($state) {
-                                    $mother = FamilyMember::find($state);
-                                    if ($mother && $mother->spouse_id) {
-                                        $set('father_id', $mother->spouse_id);
-                                    }
-                                }
-                            }),
                         Forms\Components\TextInput::make('generation')
                             ->required()
                             ->numeric()
                             ->default(1)
-                            ->label('Generasi Ke-'),
+                            ->label('Generasi Ke-')
+                            ->minValue(1)
+                            ->helperText('Generasi 1 = Pendiri, Generasi 2 = Anak pendiri, dst'),
+                        Forms\Components\Placeholder::make('parent_info')
+                            ->label('')
+                            ->content('⚠️ Kosongkan field Ayah dan Ibu jika anggota ini adalah pendiri keluarga atau belum diketahui orang tuanya')
+                            ->columnSpanFull(),
+                        Forms\Components\Select::make('father_id')
+                            ->label('Ayah (Opsional)')
+                            ->relationship('father', 'full_name', fn(Builder $query) => $query->where('gender', 'male'))
+                            ->searchable()
+                            ->preload()
+                            ->reactive()
+                            ->helperText('Pilih ayah hanya jika sudah menikah')
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                if ($state) {
+                                    $father = FamilyMember::find($state);
+                                    
+                                    // Check if father is married
+                                    if ($father && !in_array($father->marital_status, ['married', 'widowed'])) {
+                                        Notification::make()
+                                            ->warning()
+                                            ->title('Ayah Belum Menikah')
+                                            ->body("Ayah yang dipilih ({$father->full_name}) belum menikah. Anda tidak dapat menambahkan anak untuk orang yang belum menikah.")
+                                            ->persistent()
+                                            ->send();
+                                        
+                                        $set('father_id', null);
+                                        $set('mother_id', null);
+                                        return;
+                                    }
+                                    
+                                    if ($father && $father->spouse_id) {
+                                        $set('mother_id', $father->spouse_id);
+                                    }
+                                    
+                                    // Auto-suggest next child order
+                                    self::suggestChildOrder($state, 'father', $set);
+                                }
+                            }),
+                        Forms\Components\Select::make('mother_id')
+                            ->label('Ibu (Opsional)')
+                            ->relationship('mother', 'full_name', fn(Builder $query) => $query->where('gender', 'female'))
+                            ->searchable()
+                            ->preload()
+                            ->reactive()
+                            ->helperText('Pilih ibu hanya jika sudah menikah')
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                if ($state) {
+                                    $mother = FamilyMember::find($state);
+                                    
+                                    // Check if mother is married
+                                    if ($mother && !in_array($mother->marital_status, ['married', 'widowed'])) {
+                                        Notification::make()
+                                            ->warning()
+                                            ->title('Ibu Belum Menikah')
+                                            ->body("Ibu yang dipilih ({$mother->full_name}) belum menikah. Anda tidak dapat menambahkan anak untuk orang yang belum menikah.")
+                                            ->persistent()
+                                            ->send();
+                                        
+                                        $set('mother_id', null);
+                                        $set('father_id', null);
+                                        return;
+                                    }
+                                    
+                                    if ($mother && $mother->spouse_id) {
+                                        $set('father_id', $mother->spouse_id);
+                                    }
+                                    
+                                    // Auto-suggest next child order
+                                    self::suggestChildOrder($state, 'mother', $set);
+                                }
+                            }),
                         Forms\Components\TextInput::make('child_order')
                             ->numeric()
-                            ->label('Anak Ke-'),
+                            ->label('Anak Ke-')
+                            ->minValue(1)
+                            ->helperText('Urutan anak dari pasangan. Akan otomatis terisi berdasarkan jumlah anak yang sudah ada.')
+                            ->live()
+                            ->reactive()
+                            ->dehydrated(true),
+                        Forms\Components\Toggle::make('is_twin')
+                            ->label('Anak Kembar')
+                            ->helperText('Aktifkan jika anak ini kembar')
+                            ->reactive()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if (!$state) {
+                                    $set('twin_order', null);
+                                }
+                            }),
+                        Forms\Components\TextInput::make('twin_order')
+                            ->numeric()
+                            ->label('Kembar Ke-')
+                            ->minValue(1)
+                            ->helperText('Urutan kembar (1 = kembar pertama, 2 = kembar kedua, dst)')
+                            ->visible(fn(Forms\Get $get) => $get('is_twin'))
+                            ->required(fn(Forms\Get $get) => $get('is_twin'))
+                            ->live(),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Status Pernikahan')
+                    ->description('Isi status pernikahan dan pasangan. Anda tidak perlu langsung menambahkan anak - bisa dilakukan nanti.')
                     ->schema([
                         Forms\Components\Select::make('marital_status')
                             ->required()
@@ -141,13 +210,49 @@ class FamilyMemberResource extends Resource
                             ])
                             ->default('single')
                             ->label('Status Pernikahan')
-                            ->reactive(),
+                            ->reactive()
+                            ->live(),
+                        Forms\Components\Placeholder::make('spouse_note')
+                            ->label('')
+                            ->content('ℹ️ Jika sudah menikah, data anak bisa ditambahkan nanti dengan membuat anggota baru dan memilih orang tua mereka')
+                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['married', 'widowed']))
+                            ->columnSpanFull(),
+                        Forms\Components\Toggle::make('spouse_is_external')
+                            ->label('Pasangan dari Luar Keluarga')
+                            ->helperText('Aktifkan jika pasangan bukan anggota keluarga Sukapura')
+                            ->default(false)
+                            ->reactive()
+                            ->live()
+                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['married', 'widowed']))
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if ($state) {
+                                    $set('spouse_id', null);
+                                } else {
+                                    $set('spouse_name', null);
+                                }
+                            }),
                         Forms\Components\Select::make('spouse_id')
-                            ->label('Pasangan')
+                            ->label('Pilih Pasangan dari Anggota Keluarga')
                             ->relationship('spouse', 'full_name')
                             ->searchable()
                             ->preload()
-                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['married', 'widowed'])),
+                            ->helperText('Pilih jika pasangan adalah anggota keluarga Sukapura')
+                            ->visible(fn(Forms\Get $get) => 
+                                in_array($get('marital_status'), ['married', 'widowed']) && 
+                                !$get('spouse_is_external')
+                            ),
+                        Forms\Components\TextInput::make('spouse_name')
+                            ->label('Nama Pasangan')
+                            ->maxLength(255)
+                            ->helperText('Masukkan nama pasangan dari luar keluarga')
+                            ->required(fn(Forms\Get $get) => 
+                                in_array($get('marital_status'), ['married', 'widowed']) && 
+                                $get('spouse_is_external')
+                            )
+                            ->visible(fn(Forms\Get $get) => 
+                                in_array($get('marital_status'), ['married', 'widowed']) && 
+                                $get('spouse_is_external')
+                            ),
                         Forms\Components\DatePicker::make('marriage_date')
                             ->label('Tanggal Menikah')
                             ->displayFormat('d/m/Y')
@@ -257,6 +362,21 @@ class FamilyMemberResource extends Resource
                     ->label('Gen.')
                     ->badge()
                     ->color('success'),
+                Tables\Columns\TextColumn::make('child_info')
+                    ->label('Anak Ke-')
+                    ->getStateUsing(function (FamilyMember $record): ?string {
+                        if (!$record->child_order) {
+                            return '-';
+                        }
+                        $info = $record->child_order;
+                        if ($record->is_twin && $record->twin_order) {
+                            $info .= ' (Kembar ' . $record->twin_order . ')';
+                        }
+                        return $info;
+                    })
+                    ->badge()
+                    ->color(fn(FamilyMember $record) => $record->is_twin ? 'warning' : 'info')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('birth_date')
                     ->date('d/m/Y')
                     ->sortable()
@@ -269,6 +389,34 @@ class FamilyMemberResource extends Resource
                     ->falseIcon('heroicon-o-x-circle')
                     ->trueColor('success')
                     ->falseColor('danger'),
+                Tables\Columns\TextColumn::make('marital_status')
+                    ->label('Status Nikah')
+                    ->badge()
+                    ->formatStateUsing(fn(string $state): string => match ($state) {
+                        'single' => 'Belum Menikah',
+                        'married' => 'Menikah',
+                        'divorced' => 'Cerai',
+                        'widowed' => 'Janda/Duda',
+                    })
+                    ->color(fn(string $state): string => match ($state) {
+                        'single' => 'gray',
+                        'married' => 'success',
+                        'divorced' => 'warning',
+                        'widowed' => 'danger',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('spouse_display')
+                    ->label('Pasangan')
+                    ->getStateUsing(function (FamilyMember $record): ?string {
+                        if ($record->spouse_is_external && $record->spouse_name) {
+                            return $record->spouse_name . ' (Luar Keluarga)';
+                        }
+                        if ($record->spouse_id && $record->spouse) {
+                            return $record->spouse->full_name;
+                        }
+                        return '-';
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()
@@ -427,5 +575,34 @@ class FamilyMemberResource extends Resource
         }
 
         return 'success';
+    }
+
+    /**
+     * Auto-suggest child order based on existing children
+     */
+    protected static function suggestChildOrder($parentId, $parentType, $set): void
+    {
+        if (!$parentId) {
+            return;
+        }
+
+        $column = $parentType === 'father' ? 'father_id' : 'mother_id';
+        
+        // Count existing children
+        $existingChildren = FamilyMember::where($column, $parentId)->count();
+        
+        // Suggest next order
+        $nextOrder = $existingChildren + 1;
+        
+        $set('child_order', $nextOrder);
+        
+        // Show notification
+        if ($existingChildren > 0) {
+            Notification::make()
+                ->info()
+                ->title('Anak Ke-' . $nextOrder)
+                ->body('Orang tua ini sudah memiliki ' . $existingChildren . ' anak. Anak baru akan menjadi anak ke-' . $nextOrder . '.')
+                ->send();
+        }
     }
 }

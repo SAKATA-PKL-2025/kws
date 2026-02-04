@@ -97,6 +97,16 @@ class FamilyPhotoResource extends Resource
               ->helperText('Jika dinonaktifkan, foto tidak akan ditampilkan di website publik'),
           ])
           ->visible($isSuperAdmin),
+
+        Forms\Components\Section::make('Informasi Penolakan')
+          ->schema([
+            Forms\Components\Placeholder::make('rejection_reason')
+              ->label('Alasan Penolakan')
+              ->content(fn(?FamilyPhoto $record): string => $record?->rejection_reason ?? '-')
+              ->columnSpanFull(),
+          ])
+          ->visible(fn(?FamilyPhoto $record) => $record?->status === 'rejected' && $record?->rejection_reason)
+          ->columnSpanFull(),
       ]);
   }
 
@@ -122,8 +132,10 @@ class FamilyPhotoResource extends Resource
       ->columns([
         Tables\Columns\ImageColumn::make('photo_path')
           ->label('Foto')
+          ->disk('public')
           ->circular()
-          ->size(60),
+          ->size(60)
+          ->defaultImageUrl(url('/images/no-image.png')),
         Tables\Columns\TextColumn::make('title')
           ->searchable()
           ->sortable()
@@ -158,10 +170,27 @@ class FamilyPhotoResource extends Resource
             'approved' => 'success',
             'rejected' => 'danger',
           })
+          ->icon(fn(string $state): string => match ($state) {
+            'pending' => 'heroicon-o-clock',
+            'approved' => 'heroicon-o-check-circle',
+            'rejected' => 'heroicon-o-x-circle',
+          })
           ->formatStateUsing(fn(string $state): string => match ($state) {
-            'pending' => 'Menunggu',
+            'pending' => 'Menunggu Verifikasi',
             'approved' => 'Disetujui',
             'rejected' => 'Ditolak',
+          })
+          ->description(function (FamilyPhoto $record) use ($isSuperAdmin): ?string {
+            if (!$isSuperAdmin && $record->status === 'pending') {
+              return 'Sedang menunggu persetujuan Super Admin';
+            }
+            if (!$isSuperAdmin && $record->status === 'rejected' && $record->rejection_reason) {
+              return 'Alasan: ' . $record->rejection_reason;
+            }
+            if ($record->status === 'approved' && $record->approved_at) {
+              return 'Disetujui pada ' . $record->approved_at->format('d/m/Y H:i');
+            }
+            return null;
           }),
         Tables\Columns\TextColumn::make('uploader.name')
           ->label('Diupload Oleh')
@@ -206,30 +235,62 @@ class FamilyPhotoResource extends Resource
                 'status' => 'approved',
                 'approved_by' => Auth::id(),
                 'approved_at' => now(),
+                'is_public' => $record->is_public ?? true, // Ensure is_public is set
               ]);
 
               Notification::make()
                 ->success()
                 ->title('Foto Disetujui')
-                ->body("Foto '{$record->title}' telah disetujui.")
+                ->body("Foto '{$record->title}' telah disetujui dan akan muncul di website publik.")
                 ->send();
             }),
           Tables\Actions\Action::make('reject')
             ->label('Tolak')
             ->icon('heroicon-o-x-circle')
             ->color('danger')
-            ->requiresConfirmation()
+            ->form([
+              Forms\Components\Textarea::make('rejection_reason')
+                ->label('Alasan Penolakan')
+                ->required()
+                ->rows(4)
+                ->placeholder('Tuliskan alasan mengapa foto ini ditolak...')
+                ->helperText('Alasan ini akan dilihat oleh Admin Keluarga'),
+            ])
             ->visible(fn(FamilyPhoto $record) => $isSuperAdmin && $record->status === 'pending')
-            ->action(function (FamilyPhoto $record) {
+            ->action(function (FamilyPhoto $record, array $data) {
               $record->update([
                 'status' => 'rejected',
                 'approved_by' => Auth::id(),
+                'rejection_reason' => $data['rejection_reason'],
               ]);
 
               Notification::make()
                 ->warning()
                 ->title('Foto Ditolak')
                 ->body("Foto '{$record->title}' telah ditolak.")
+                ->send();
+            }),
+          Tables\Actions\Action::make('resubmit')
+            ->label('Kirim Ulang')
+            ->icon('heroicon-o-arrow-path')
+            ->color('warning')
+            ->requiresConfirmation()
+            ->modalHeading('Kirim Ulang Foto')
+            ->modalDescription(fn(FamilyPhoto $record) => 'Foto ini sebelumnya ditolak dengan alasan: "' . $record->rejection_reason . '". Apakah Anda yakin ingin mengirim ulang untuk review?')
+            ->modalSubmitActionLabel('Ya, Kirim Ulang')
+            ->visible(fn(FamilyPhoto $record) => !$isSuperAdmin && $record->status === 'rejected')
+            ->action(function (FamilyPhoto $record) {
+              $record->update([
+                'status' => 'pending',
+                'approved_by' => null,
+                'approved_at' => null,
+                'rejection_reason' => null,
+              ]);
+
+              Notification::make()
+                ->success()
+                ->title('Foto Dikirim Ulang')
+                ->body("Foto '{$record->title}' telah dikirim ulang untuk review.")
                 ->send();
             }),
           Tables\Actions\DeleteAction::make()

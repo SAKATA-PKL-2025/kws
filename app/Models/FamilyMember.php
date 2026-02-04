@@ -27,8 +27,12 @@ class FamilyMember extends Model
         'father_id',
         'mother_id',
         'spouse_id',
+        'spouse_is_external',
+        'spouse_name',
         'generation',
         'child_order',
+        'is_twin',
+        'twin_order',
         'marital_status',
         'marriage_date',
         'phone',
@@ -58,8 +62,11 @@ class FamilyMember extends Model
         'is_alive' => 'boolean',
         'is_public' => 'boolean',
         'is_founder' => 'boolean',
+        'spouse_is_external' => 'boolean',
+        'is_twin' => 'boolean',
         'generation' => 'integer',
         'child_order' => 'integer',
+        'twin_order' => 'integer',
     ];
 
     protected $appends = ['age', 'display_name'];
@@ -206,6 +213,22 @@ class FamilyMember extends Model
     public function getDisplayNameAttribute(): string
     {
         return $this->nickname ?: $this->full_name;
+    }
+
+    /**
+     * Get spouse name (handle both internal and external spouse)
+     */
+    public function getSpouseNameAttribute(): ?string
+    {
+        if ($this->spouse_is_external && $this->spouse_name) {
+            return $this->spouse_name;
+        }
+        
+        if ($this->spouse_id && $this->spouse) {
+            return $this->spouse->full_name;
+        }
+        
+        return null;
     }
 
     /**
