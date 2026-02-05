@@ -262,34 +262,22 @@
                     <h3 class="text-lg font-bold mb-5 text-white">Menu Cepat</h3>
                     <ul class="space-y-3">
                         <li>
-                            <a href="{{ route('home') }}" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all inline-flex items-center group">
-                                <span class="bg-gray-700 group-hover:bg-gray-600 w-6 h-6 rounded flex items-center justify-center mr-3 transition">
-                                    <i class="fas fa-home text-xs"></i>
-                                </span>
+                            <a href="{{ route('home') }}" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all group">
                                 Beranda
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('home') }}#family-tree" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all inline-flex items-center group">
-                                <span class="bg-gray-700 group-hover:bg-gray-600 w-6 h-6 rounded flex items-center justify-center mr-3 transition">
-                                    <i class="fas fa-tree text-xs"></i>
-                                </span>
+                            <a href="{{ route('home') }}#family-tree" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all group">
                                 Pohon Keluarga
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('about') }}" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all inline-flex items-center group">
-                                <span class="bg-gray-700 group-hover:bg-gray-600 w-6 h-6 rounded flex items-center justify-center mr-3 transition">
-                                    <i class="fas fa-info-circle text-xs"></i>
-                                </span>
+                            <a href="{{ route('about') }}" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all group">
                                 Tentang Kami
                             </a>
                         </li>
                         <li>
-                            <a href="{{ route('gallery') }}" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all inline-flex items-center group">
-                                <span class="bg-gray-700 group-hover:bg-gray-600 w-6 h-6 rounded flex items-center justify-center mr-3 transition">
-                                    <i class="fas fa-images text-xs"></i>
-                                </span>
+                            <a href="{{ route('gallery') }}" class="text-gray-300 hover:text-white hover:translate-x-1 transition-all group">
                                 Galeri Foto
                             </a>
                         </li>

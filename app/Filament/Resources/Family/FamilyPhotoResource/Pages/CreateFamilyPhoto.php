@@ -18,7 +18,7 @@ class CreateFamilyPhoto extends CreateRecord
     // Admin Keluarga: pending, butuh approval
     /** @var \App\Models\User $user */
     $user = Auth::user();
-    
+
     if ($user->hasRole('Super Admin')) {
       $data['status'] = 'approved';
       $data['approved_by'] = Auth::id();
@@ -28,7 +28,7 @@ class CreateFamilyPhoto extends CreateRecord
       $data['approved_by'] = null;
       $data['approved_at'] = null;
     }
-    
+
     // Set is_public default to true if not set (for non-Super Admin)
     if (!isset($data['is_public'])) {
       $data['is_public'] = true;

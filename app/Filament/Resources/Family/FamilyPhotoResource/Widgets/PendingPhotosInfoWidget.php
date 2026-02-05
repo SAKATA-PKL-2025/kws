@@ -16,7 +16,7 @@ class PendingPhotosInfoWidget extends Widget
     {
         /** @var \App\Models\User $user */
         $user = Auth::user();
-        
+
         if ($user->hasRole('Super Admin')) {
             return [
                 'show' => false,

@@ -420,10 +420,6 @@ class FamilyMemberResource extends Resource
                         'male' => 'L',
                         'female' => 'P',
                     }),
-                Tables\Columns\TextColumn::make('branch.name')
-                    ->label('Cabang')
-                    ->badge()
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('generation')
                     ->numeric()
                     ->sortable()
@@ -507,11 +503,6 @@ class FamilyMemberResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('family_branch_id')
-                    ->relationship('branch', 'name')
-                    ->label('Filter Cabang')
-                    ->preload()
-                    ->visible($isSuperAdmin),
                 Tables\Filters\SelectFilter::make('status')
                     ->options([
                         'pending' => 'Menunggu',
