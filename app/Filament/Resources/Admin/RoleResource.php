@@ -38,6 +38,16 @@ class RoleResource extends Resource
         return $user->hasRole('Super Admin');
     }
 
+    public static function canView($record): bool
+    {
+        return $record->name !== 'Pengunjung' && self::canViewAny();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return $record->name !== 'Pengunjung' && self::canViewAny();
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -50,18 +60,12 @@ class RoleResource extends Resource
                             ->maxLength(255)
                             ->label('Nama Peran')
                             ->helperText('Contoh: Super Admin, Admin Keluarga'),
-                        Forms\Components\TextInput::make('guard_name')
-                            ->default('web')
-                            ->required()
-                            ->maxLength(255)
-                            ->label('Guard Name')
-                            ->disabled(),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Hak Akses')
                     ->schema([
                         Forms\Components\CheckboxList::make('permissions')
-                            ->relationship('permissions', 'name')
+                            ->relationship('permissions', 'name', fn(Builder $query) => $query->where('name', 'not like', '%family_branches%'))
                             ->columns(3)
                             ->searchable()
                             ->bulkToggleable()
@@ -74,6 +78,7 @@ class RoleResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn(Builder $query) => $query->where('name', '!=', 'Pengunjung'))
             ->columns([
                 Tables\Columns\TextColumn::make('name')
                     ->searchable()
@@ -144,6 +149,6 @@ class RoleResource extends Resource
 
     public static function getNavigationBadge(): ?string
     {
-        return static::getModel()::count();
+        return static::getModel()::where('name', '!=', 'Pengunjung')->count();
     }
 }

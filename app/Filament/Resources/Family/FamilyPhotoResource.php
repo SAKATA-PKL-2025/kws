@@ -70,14 +70,6 @@ class FamilyPhotoResource extends Resource
 
         Forms\Components\Section::make('Detail Foto')
           ->schema([
-            Forms\Components\Select::make('family_branch_id')
-              ->label('Cabang Keluarga')
-              ->relationship('branch', 'name')
-              ->searchable()
-              ->preload()
-              ->default($adminBranch?->id)
-              ->disabled(!$isSuperAdmin)
-              ->helperText('Pilih cabang keluarga terkait'),
             Forms\Components\DatePicker::make('photo_date')
               ->label('Tanggal Foto Diambil')
               ->displayFormat('d/m/Y')
@@ -142,10 +134,6 @@ class FamilyPhotoResource extends Resource
           ->label('Judul')
           ->weight('bold')
           ->wrap(),
-        Tables\Columns\TextColumn::make('branch.name')
-          ->label('Cabang')
-          ->badge()
-          ->searchable(),
         Tables\Columns\TextColumn::make('photo_date')
           ->date('d/m/Y')
           ->sortable()
@@ -176,19 +164,16 @@ class FamilyPhotoResource extends Resource
             'rejected' => 'heroicon-o-x-circle',
           })
           ->formatStateUsing(fn(string $state): string => match ($state) {
-            'pending' => 'Menunggu Verifikasi',
+            'pending' => 'Menunggu',
             'approved' => 'Disetujui',
             'rejected' => 'Ditolak',
           })
           ->description(function (FamilyPhoto $record) use ($isSuperAdmin): ?string {
-            if (!$isSuperAdmin && $record->status === 'pending') {
-              return 'Sedang menunggu persetujuan Super Admin';
-            }
             if (!$isSuperAdmin && $record->status === 'rejected' && $record->rejection_reason) {
               return 'Alasan: ' . $record->rejection_reason;
             }
             if ($record->status === 'approved' && $record->approved_at) {
-              return 'Disetujui pada ' . $record->approved_at->format('d/m/Y H:i');
+              return $record->approved_at->format('d/m/Y H:i');
             }
             return null;
           }),
@@ -202,11 +187,6 @@ class FamilyPhotoResource extends Resource
           ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
-        Tables\Filters\SelectFilter::make('family_branch_id')
-          ->relationship('branch', 'name')
-          ->label('Filter Cabang')
-          ->preload()
-          ->visible($isSuperAdmin),
         Tables\Filters\SelectFilter::make('status')
           ->options([
             'pending' => 'Menunggu',

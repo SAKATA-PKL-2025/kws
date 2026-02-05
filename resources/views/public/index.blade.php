@@ -21,12 +21,19 @@
         position: relative;
     }
     
-    .tree-children {
+    .tree-children-wrap {
         display: flex;
         justify-content: center;
         align-items: flex-start;
-        gap: 30px;
         margin-top: 60px;
+        position: relative;
+    }
+
+    .tree-children {
+        display: inline-flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 30px;
         position: relative;
     }
     
@@ -82,6 +89,19 @@
         word-wrap: break-word;
         overflow-wrap: break-word;
     }
+
+    .couple-row {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .spouse-line {
+        width: 24px;
+        height: 2px;
+        background-color: #93c5fd;
+        flex-shrink: 0;
+    }
     
     .member-card:hover {
         transform: translateY(-4px);
@@ -113,7 +133,7 @@
     }
     
     .tree-children {
-        display: flex;
+        display: inline-flex;
         justify-content: center;
         align-items: flex-start;
         padding-top: 30px;
@@ -132,13 +152,13 @@
     }
     
     /* Setiap child node */
-    .tree-children > .tree-node {
+    .tree-children > .tree-child {
         position: relative;
         padding: 0 15px;
     }
     
     /* Garis vertikal dari garis horizontal ke child */
-    .tree-children > .tree-node::before {
+    .tree-children > .tree-child::before {
         content: '';
         position: absolute;
         top: -15px;
@@ -150,7 +170,7 @@
     }
     
     /* Garis horizontal ke kanan (untuk semua kecuali child terakhir) */
-    .tree-children > .tree-node:not(:last-child)::after {
+    .tree-children > .tree-child:not(:last-child)::after {
         content: '';
         position: absolute;
         top: -15px;
@@ -161,17 +181,17 @@
     }
     
     /* Untuk single child - sembunyikan garis horizontal, perpanjang vertikal */
-    .tree-children > .tree-node:only-child::before {
+    .tree-children > .tree-child:only-child::before {
         top: -30px;
         height: 30px;
     }
     
-    .tree-children > .tree-node:only-child::after {
+    .tree-children > .tree-child:only-child::after {
         display: none;
     }
     
     /* Sembunyikan garis vertikal dari parent jika hanya 1 anak */
-    .tree-children:has(> .tree-node:only-child)::before {
+    .tree-children:has(> .tree-child:only-child)::before {
         display: none;
     }
     
@@ -250,120 +270,31 @@
         <!-- Statistics Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-16">
             <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 hover:bg-opacity-20 transition">
-                <div class="text-4xl font-bold mb-2">{{ $members->count() }}</div>
+                <div class="text-4xl font-bold mb-2">{{ $members->count() }}+</div>
                 <div class="text-sm text-blue-100">Anggota Keluarga</div>
             </div>
             <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 hover:bg-opacity-20 transition">
-                <div class="text-4xl font-bold mb-2">{{ $members->max('generation') ?? 0 }}</div>
+                <div class="text-4xl font-bold mb-2">{{ $members->max('generation') ?? 0 }}+</div>
                 <div class="text-sm text-blue-100">Generasi</div>
             </div>
             <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 hover:bg-opacity-20 transition">
-                <div class="text-4xl font-bold mb-2">{{ $branches->count() }}</div>
-                <div class="text-sm text-blue-100">Cabang Keluarga</div>
+                <div class="text-4xl font-bold mb-2">{{ $members->where('marital_status', 'married')->count() }}+</div>
+                <div class="text-sm text-blue-100">Pasangan Menikah</div>
             </div>
             <div class="bg-white bg-opacity-10 backdrop-blur-sm rounded-2xl p-6 hover:bg-opacity-20 transition">
-                <div class="text-4xl font-bold mb-2">{{ $branches->sum('members_count') }}</div>
-                <div class="text-sm text-blue-100">Total Anggota</div>
+                @php
+                    $oldestYear = $members->whereNotNull('birth_date')->min(function($member) {
+                        return $member->birth_date ? \Carbon\Carbon::parse($member->birth_date)->year : null;
+                    });
+                    $yearsOfHistory = $oldestYear ? now()->year - $oldestYear : 0;
+                @endphp
+                <div class="text-4xl font-bold mb-2">{{ $yearsOfHistory }}+</div>
+                <div class="text-sm text-blue-100">Tahun Sejarah</div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Branches Section -->
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-    <div class="mb-8">
-        <h2 class="text-3xl font-bold text-gray-900 mb-2 flex items-center">
-            <div class="w-12 h-12 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center mr-3 shadow-lg">
-                <i class="fas fa-code-branch text-white text-xl"></i>
-            </div>
-            Cabang Keluarga
-        </h2>
-        <p class="text-gray-600 ml-15">Jelajahi setiap cabang keluarga dan lihat anggota di dalamnya</p>
-    </div>
-
-    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        @forelse($branches as $branch)
-            <div class="bg-white rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border-2 border-transparent hover:border-blue-500 group flex flex-col h-full">
-                <!-- Content -->
-                <div class="p-4 flex flex-col flex-grow">
-                    <!-- Branch Icon & Name -->
-                    <div class="flex items-start justify-between mb-3">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 rounded-xl flex items-center justify-center mr-3 group-hover:scale-110 transition-transform" 
-                                 style="background-color: {{ $branch->color_code }}20;">
-                                <i class="fas fa-sitemap text-xl" style="color: {{ $branch->color_code }};"></i>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-base text-gray-900 leading-tight">{{ $branch->name }}</h3>
-                                <p class="text-xs text-gray-500 mt-1">
-                                    <i class="fas fa-user-circle mr-1"></i>{{ $branch->founder_name ?? 'Pendiri' }}
-                                </p>
-                            </div>
-                        </div>
-                        <span class="px-2 py-1 rounded-full text-xs font-semibold" 
-                              style="background-color: {{ $branch->color_code }}20; color: {{ $branch->color_code }};">
-                            Aktif
-                        </span>
-                    </div>
-
-                    <!-- Statistics -->
-                    <div class="grid grid-cols-3 gap-2 mb-3">
-                        <div class="bg-gray-50 rounded-lg p-2 text-center">
-                            <div class="text-xl font-bold text-gray-900">{{ $branch->members_count }}</div>
-                            <div class="text-xs text-gray-600 mt-1">Anggota</div>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-2 text-center">
-                            <div class="text-xl font-bold text-gray-900">
-                                {{ $members->where('family_branch_id', $branch->id)->max('generation') ?? 0 }}
-                            </div>
-                            <div class="text-xs text-gray-600 mt-1">Generasi</div>
-                        </div>
-                        <div class="bg-gray-50 rounded-lg p-2 text-center">
-                            <div class="text-xl font-bold text-gray-900">
-                                {{ $members->where('family_branch_id', $branch->id)->where('is_alive', true)->count() }}
-                            </div>
-                            <div class="text-xs text-gray-600 mt-1">Hidup</div>
-                        </div>
-                    </div>
-
-                    <!-- Recent Members Preview -->
-                    <div class="mb-4 flex-grow">
-                        <div class="text-xs font-semibold text-gray-500 mb-2 flex items-center">
-                            <i class="fas fa-users mr-1"></i>
-                            Anggota Terbaru
-                        </div>
-                        <div class="flex -space-x-2 min-h-[2rem]">
-                            @foreach($members->where('family_branch_id', $branch->id)->take(5) as $member)
-                                <div class="w-8 h-8 rounded-full border-2 border-white bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-md"
-                                     title="{{ $member->full_name }}">
-                                    {{ strtoupper(substr($member->full_name, 0, 1)) }}
-                                </div>
-                            @endforeach
-                            @if($branch->members_count > 5)
-                                <div class="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-bold shadow-md">
-                                    +{{ $branch->members_count - 5 }}
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-
-                    <!-- Action Button -->
-                    <button onclick="scrollToTree()" 
-                            class="w-full py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center group-hover:shadow-lg"
-                            style="background-color: {{ $branch->color_code }}; color: white;">
-                        <i class="fas fa-arrow-down mr-2"></i>
-                        Lihat di Pohon Keluarga
-                    </button>
-                </div>
-            </div>
-        @empty
-            <div class="col-span-3 bg-white rounded-2xl shadow-lg p-12 text-center">
-                <i class="fas fa-code-branch text-gray-300 text-6xl mb-4"></i>
-                <p class="text-gray-500 text-lg">Belum ada cabang keluarga yang aktif.</p>
-            </div>
-        @endforelse
-    </div>
-</div>
 
 <!-- Family Tree Section -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16" id="family-tree">
@@ -376,53 +307,38 @@
         <!-- Cara Membaca Pohon Keluarga -->
         <div class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-2xl p-6 mb-8 border border-blue-100">
             <div class="flex items-center mb-4">
-                <div class="bg-blue-600 rounded-lg p-2 mr-3">
-                    <i class="fas fa-book-open text-white"></i>
-                </div>
+                <div class="w-10 h-10 rounded-lg border border-blue-200 text-blue-700 flex items-center justify-center text-sm font-semibold mr-3">i</div>
                 <h3 class="text-lg font-bold text-gray-900">Cara Membaca Pohon Keluarga</h3>
             </div>
             <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="bg-white rounded-xl p-4 shadow-sm">
-                    <div class="flex items-center mb-2">
-                        <div class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center mr-2">
-                            <i class="fas fa-arrow-down text-blue-600 text-sm"></i>
-                        </div>
+                    <div class="mb-2">
                         <span class="font-semibold text-gray-800">Arah Baca</span>
                     </div>
                     <p class="text-sm text-gray-600">Baca dari <strong>atas ke bawah</strong>. Generasi tertua di atas, generasi muda di bawah.</p>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-sm">
-                    <div class="flex items-center mb-2">
-                        <div class="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center mr-2">
-                            <i class="fas fa-sitemap text-green-600 text-sm"></i>
-                        </div>
+                    <div class="mb-2">
                         <span class="font-semibold text-gray-800">Garis Penghubung</span>
                     </div>
                     <p class="text-sm text-gray-600">Garis menghubungkan <strong>orang tua</strong> dengan <strong>anak-anaknya</strong>.</p>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-sm">
-                    <div class="flex items-center mb-2">
-                        <div class="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center mr-2">
-                            <i class="fas fa-layer-group text-purple-600 text-sm"></i>
-                        </div>
+                    <div class="mb-2">
                         <span class="font-semibold text-gray-800">Generasi</span>
                     </div>
                     <p class="text-sm text-gray-600">Angka generasi menunjukkan <strong>tingkat keturunan</strong> dari pendiri keluarga.</p>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-sm">
-                    <div class="flex items-center mb-2">
-                        <div class="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center mr-2">
-                            <i class="fas fa-palette text-orange-600 text-sm"></i>
-                        </div>
-                        <span class="font-semibold text-gray-800">Warna Cabang</span>
+                    <div class="mb-2">
+                        <span class="font-semibold text-gray-800">Detail Anggota</span>
                     </div>
-                    <p class="text-sm text-gray-600">Setiap <strong>cabang keluarga</strong> memiliki warna berbeda untuk memudahkan identifikasi.</p>
+                    <p class="text-sm text-gray-600">Klik pada <strong>kotak nama</strong> untuk melihat informasi lengkap anggota keluarga.</p>
                 </div>
             </div>
             <div class="mt-4 p-3 bg-white/50 rounded-lg border border-blue-200">
                 <p class="text-sm text-gray-600">
-                    <i class="fas fa-lightbulb text-yellow-500 mr-2"></i>
-                    <strong>Tips:</strong> Klik pada kotak nama anggota untuk melihat informasi lengkap. Gunakan scroll horizontal jika pohon keluarga terlalu lebar.
+                    <strong>Tips:</strong> Klik pada kotak nama anggota untuk melihat informasi lengkap seperti tanggal lahir, tempat lahir, dan hubungan keluarga. Gunakan scroll horizontal jika pohon keluarga terlalu lebar.
                 </p>
             </div>
         </div>
@@ -459,7 +375,6 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(1)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-question-circle text-blue-600 mr-3"></i>
                     Apa itu Silsilah Keluarga KWS?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-1"></i>
@@ -479,7 +394,6 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(2)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-bullseye text-blue-600 mr-3"></i>
                     Mengapa website ini dibuat?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-2"></i>
@@ -497,7 +411,6 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(3)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-sitemap text-blue-600 mr-3"></i>
                     Bagaimana cara membaca pohon keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-3"></i>
@@ -505,8 +418,8 @@
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-3">
                 <p class="text-gray-600 leading-relaxed py-5">
                     Pohon keluarga dibaca dari atas ke bawah. Generasi tertua (pendiri keluarga) berada di paling atas, dan keturunannya 
-                    tersusun ke bawah. Garis penghubung menunjukkan hubungan orang tua dan anak. Setiap cabang keluarga memiliki warna 
-                    berbeda untuk memudahkan identifikasi. Anda bisa mengklik kotak nama untuk melihat informasi detail setiap anggota.
+                    tersusun ke bawah. Garis penghubung menunjukkan hubungan orang tua dan anak. Anda bisa mengklik kotak nama untuk 
+                    melihat informasi detail setiap anggota keluarga seperti tanggal lahir, tempat lahir, dan informasi lainnya.
                 </p>
             </div>
         </div>
@@ -515,7 +428,6 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(4)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-search text-blue-600 mr-3"></i>
                     Bagaimana cara mencari anggota keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-4"></i>
@@ -533,17 +445,15 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(5)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-code-branch text-blue-600 mr-3"></i>
-                    Apa yang dimaksud dengan cabang keluarga?
+                    Bagaimana jika nama saya belum ada di pohon keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-5"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-5">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Cabang keluarga adalah pembagian silsilah berdasarkan keturunan dari anak-anak pendiri keluarga. Misalnya, 
-                    "Cabang Keturunan Anak Pertama" berisi semua keturunan dari anak pertama pendiri. Setiap cabang ditandai dengan 
-                    warna berbeda agar mudah dibedakan di pohon keluarga. Pembagian ini membantu mengorganisir dan memahami struktur 
-                    keluarga besar dengan lebih baik.
+                    Jika Anda adalah anggota keluarga tetapi nama Anda belum tercantum, silakan hubungi admin utama keluarga. 
+                    Sertakan informasi lengkap seperti nama lengkap, tanggal lahir, dan nama orang tua Anda. Admin akan memverifikasi 
+                    dan menambahkan data Anda ke dalam sistem dalam waktu singkat.
                 </p>
             </div>
         </div>
@@ -552,16 +462,15 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(6)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-user-plus text-blue-600 mr-3"></i>
-                    Bagaimana jika nama saya belum ada di pohon keluarga?
+                    Apakah data pribadi saya aman?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-6"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-6">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Jika Anda adalah anggota keluarga tetapi nama Anda belum tercantum, silakan hubungi admin keluarga melalui 
-                    email di info@silsilahkws.com. Sertakan informasi lengkap seperti nama lengkap, tanggal lahir, nama orang tua, 
-                    dan cabang keluarga Anda. Admin akan memverifikasi dan menambahkan data Anda ke dalam sistem.
+                    Ya, keamanan dan privasi data adalah prioritas kami. Hanya informasi dasar yang ditampilkan di halaman publik 
+                    (nama, tahun lahir, dan hubungan keluarga). Data sensitif seperti alamat lengkap, nomor telepon, dan email 
+                    tidak ditampilkan kepada publik. Website ini juga dilindungi dengan enkripsi SSL untuk keamanan data.
                 </p>
             </div>
         </div>
@@ -570,16 +479,15 @@
         <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
             <button class="faq-question w-full text-left px-6 py-5 flex justify-between items-center hover:bg-gray-50 transition" onclick="toggleFaq(7)">
                 <span class="text-lg font-semibold text-gray-900 pr-4">
-                    <i class="fas fa-shield-alt text-blue-600 mr-3"></i>
-                    Apakah data pribadi saya aman?
+                    Bagaimana cara menambahkan foto keluarga?
                 </span>
                 <i class="fas fa-chevron-down text-gray-400 transition-transform duration-300" id="faq-icon-7"></i>
             </button>
             <div class="faq-answer max-h-0 overflow-hidden transition-all duration-500 ease-in-out px-6" id="faq-answer-7">
                 <p class="text-gray-600 leading-relaxed py-5">
-                    Ya, keamanan dan privasi data adalah prioritas kami. Hanya informasi dasar yang ditampilkan di halaman publik 
-                    (nama, tahun lahir, dan hubungan keluarga). Data sensitif seperti alamat lengkap, nomor telepon, dan email 
-                    tidak ditampilkan kepada publik. Website ini juga dilindungi dengan enkripsi SSL untuk keamanan data.
+                    Foto keluarga dapat ditambahkan melalui panel admin oleh admin keluarga. Jika Anda memiliki foto acara keluarga 
+                    atau momen penting yang ingin dibagikan, silakan hubungi admin utama dan kirimkan fotonya. Admin akan mengunggah 
+                    foto tersebut ke galeri setelah mendapat persetujuan yang bersangkutan.
                 </p>
             </div>
         </div>
@@ -588,11 +496,11 @@
     <!-- CTA Box -->
     <div class="mt-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-2xl p-8 text-center text-white shadow-xl">
         <h3 class="text-2xl font-bold mb-3">Masih Ada Pertanyaan?</h3>
-        <p class="mb-6 text-blue-100">Tim kami siap membantu Anda. Jangan ragu untuk menghubungi kami.</p>
+        <p class="mb-6 text-blue-100">Tim kami siap membantu Anda. Jangan ragu untuk menghubungi admin utama kami.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <a href="mailto:info@silsilahkws.com" class="bg-white text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition inline-flex items-center justify-center">
-                <i class="fas fa-envelope mr-2"></i>
-                Kirim Email
+            <a href="https://wa.me/6281234567890" target="_blank" class="bg-white text-blue-700 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition inline-flex items-center justify-center">
+                <i class="fab fa-whatsapp mr-2"></i>
+                Chat Admin
             </a>
             <a href="{{ route('about') }}" class="bg-blue-800 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-900 transition inline-flex items-center justify-center">
                 <i class="fas fa-info-circle mr-2"></i>
@@ -625,91 +533,151 @@
     // Family data from Laravel
     const familyData = @json($members);
     
-    // Build tree structure
+    // Build tree structure - HIRARKI KELUARGA (berdasarkan pasangan)
     function buildTree() {
         const members = {};
-        const roots = [];
-        
-        // Create member lookup
+        const nodes = {};
+        const nodeByPersonId = {};
+        const assignedChildIds = new Set();
+
         familyData.forEach(member => {
             members[member.id] = {
                 ...member,
                 children: []
             };
         });
-        
-        // Build parent-child relationships
+
+        const getCoupleKey = (id1, id2) => [id1, id2].sort().join('_');
+
         familyData.forEach(member => {
-            if (member.father_id && members[member.father_id]) {
-                members[member.father_id].children.push(members[member.id]);
-            } else if (member.mother_id && members[member.mother_id]) {
-                members[member.mother_id].children.push(members[member.id]);
+            const spouse = member.spouse_id && members[member.spouse_id] ? members[member.spouse_id] : null;
+
+            if (spouse) {
+                const coupleKey = getCoupleKey(member.id, spouse.id);
+                const nodeId = `couple_${coupleKey}`;
+
+                if (!nodes[nodeId]) {
+                    const firstPerson = member.gender === 'male' ? member : spouse;
+                    const secondPerson = member.gender === 'male' ? spouse : member;
+
+                    nodes[nodeId] = {
+                        id: nodeId,
+                        type: 'couple',
+                        person1: members[firstPerson.id],
+                        person2: members[secondPerson.id],
+                        children: []
+                    };
+                }
+
+                nodeByPersonId[member.id] = nodes[nodeId];
+                nodeByPersonId[spouse.id] = nodes[nodeId];
             } else {
-                roots.push(members[member.id]);
+                const nodeId = `single_${member.id}`;
+                if (!nodes[nodeId]) {
+                    nodes[nodeId] = {
+                        id: nodeId,
+                        type: 'single',
+                        person1: members[member.id],
+                        person2: null,
+                        children: []
+                    };
+                }
+                nodeByPersonId[member.id] = nodes[nodeId];
             }
         });
-        
-        // Sort children by child_order
-        Object.values(members).forEach(member => {
-            member.children.sort((a, b) => (a.child_order || 0) - (b.child_order || 0));
+
+        familyData.forEach(child => {
+            const fatherNode = child.father_id ? nodeByPersonId[child.father_id] : null;
+            const motherNode = child.mother_id ? nodeByPersonId[child.mother_id] : null;
+            const parentNode = fatherNode || motherNode;
+            const childNode = nodeByPersonId[child.id];
+
+            if (!parentNode || !childNode || parentNode.id === childNode.id) {
+                return;
+            }
+
+            if (!parentNode.children.some(c => c.id === childNode.id)) {
+                parentNode.children.push(childNode);
+                assignedChildIds.add(childNode.id);
+            }
         });
-        
-        return { members, roots };
+
+        Object.values(nodes).forEach(node => {
+            node.children.sort((a, b) => (a.person1.child_order || 0) - (b.person1.child_order || 0));
+        });
+
+        const roots = Object.values(nodes).filter(node => !assignedChildIds.has(node.id));
+
+        return { nodes, roots };
     }
     
     // Render tree node
-    function renderNode(member, level = 0) {
-        const branchColor = member.branch?.color_code || '#3b82f6';
-        const hasChildren = member.children && member.children.length > 0;
-        
+    function renderNode(node, level = 0) {
+        const hasChildren = node.children && node.children.length > 0;
+        const person1 = node.person1;
+        const person2 = node.person2;
+
+        const renderMemberCard = (person) => {
+            const branchColor = person.branch?.color_code || '#3b82f6';
+            return `
+                <div class="member-card" data-member-id="${person.id}" onclick="showMemberDetail('${person.id}')" style="border-color: ${branchColor}">
+                    <div class="text-base font-bold text-gray-900 leading-tight">${person.full_name}</div>
+                    <div class="text-xs text-gray-500 mt-1">${person.nickname || ''}</div>
+                    ${person.birth_date ? `<div class="text-xs text-gray-400">Lahir: ${person.birth_date.split('-')[0]}</div>` : ''}
+                    ${person.branch ? `<div class="mt-2"><span class="branch-badge" style="background-color: ${branchColor}20; color: ${branchColor}; border: 1px solid ${branchColor}; font-size: 10px; padding: 2px 8px;">${person.branch.name}</span></div>` : ''}
+                    <div class="text-xs text-gray-400 mt-1">Generasi ${person.generation}</div>
+                </div>
+            `;
+        };
+
+        let coupleHtml = '';
+        if (person2) {
+            coupleHtml = `
+                <div class="couple-row">
+                    ${renderMemberCard(person1)}
+                    <div class="spouse-line"></div>
+                    ${renderMemberCard(person2)}
+                </div>
+            `;
+        } else {
+            coupleHtml = renderMemberCard(person1);
+        }
+
         let html = `
             <div class="tree-node">
-                <div class="member-card" data-member-id="${member.id}" onclick="showMemberDetail('${member.id}')" style="border-color: ${branchColor}">
-                    <div class="text-base font-bold text-gray-900 leading-tight">${member.full_name}</div>
-                    <div class="text-xs text-gray-500 mt-1">${member.nickname || ''}</div>
-                    ${member.birth_date ? `<div class="text-xs text-gray-400">Lahir: ${member.birth_date.split('-')[0]}</div>` : ''}
-                    ${member.branch ? `<div class="mt-2"><span class="branch-badge" style="background-color: ${branchColor}20; color: ${branchColor}; border: 1px solid ${branchColor}; font-size: 10px; padding: 2px 8px;">${member.branch.name}</span></div>` : ''}
-                    <div class="text-xs text-gray-400 mt-1">Generasi ${member.generation}</div>
-                </div>
-                
+                ${coupleHtml}
                 ${hasChildren ? `
-                    <div class="tree-children">
-                        ${member.children.map(child => renderNode(child, level + 1)).join('')}
+                    <div class="tree-children-wrap">
+                        <div class="tree-children">
+                            ${node.children.map(child => `<div class="tree-child">${renderNode(child, level + 1)}</div>`).join('')}
+                        </div>
                     </div>
                 ` : ''}
             </div>
         `;
-        
+
         return html;
     }
     
-    // Render tree
+    // Render tree - HIERARKI dari Pendiri
     function renderTree() {
         const { members, roots } = buildTree();
         const treeRoot = document.getElementById('tree-root');
         
         if (roots.length === 0) {
-            treeRoot.innerHTML = '<div class="text-center text-gray-500">Tidak ada data leluhur yang ditemukan.</div>';
+            treeRoot.innerHTML = '<div class="text-center text-gray-500">Tidak ada data pendiri keluarga yang ditemukan.</div>';
             return;
         }
         
-        // Render from roots with proper centered layout
-        let html = '<div class="inline-flex flex-col items-center gap-8 px-10">';
+        // Render hierarki dari pendiri (BUKAN dikelompokkan per generasi)
+        let html = '<div class="inline-flex gap-20 px-10">';
         
-        // Group roots by generation
-        const genRoots = {};
+        // Tampilkan setiap pendiri beserta keturunannya
         roots.forEach(root => {
-            if (!genRoots[root.generation]) genRoots[root.generation] = [];
-            genRoots[root.generation].push(root);
-        });
-        
-        Object.keys(genRoots).sort().forEach(gen => {
             html += `
                 <div class="flex flex-col items-center">
-                    <span class="generation-label mb-4">Generasi ${gen}</span>
-                    <div class="flex gap-10 justify-center items-start">
-                        ${genRoots[gen].map(root => renderNode(root)).join('')}
-                    </div>
+                    <span class="generation-label mb-6">Pendiri Keluarga</span>
+                    ${renderNode(root)}
                 </div>
             `;
         });

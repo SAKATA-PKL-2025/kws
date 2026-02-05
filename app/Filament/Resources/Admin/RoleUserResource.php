@@ -48,9 +48,6 @@ class RoleUserResource extends Resource
                                     ->required()
                                     ->live(onBlur: true),
                             ]),
-                        Select::make('need_approval')
-                            ->required()
-                            ->options(RoleUser::APPROVE_STATUS),
                     ])
                     ->aside()
             ]);
@@ -61,8 +58,6 @@ class RoleUserResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('need_approval')
-                    ->formatStateUsing(fn(string $state): string => RoleUser::APPROVE_STATUS[$state])
             ])
             ->filters([
                 //

@@ -94,6 +94,32 @@
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
         }
+        
+        /* Animated underline for nav links */
+        .nav-link {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 2px;
+            background: #2563eb;
+            transform: translateX(-50%);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .nav-link.active::after {
+            width: 100%;
+        }
     </style>
     
     @stack('styles')
@@ -130,13 +156,13 @@
 
                     <!-- Desktop Menu -->
                     <div class="hidden md:flex items-center space-x-6 flex-shrink-0">
-                        <a href="{{ route('home') }}" class="text-sm font-medium text-gray-700 hover:text-blue-600 transition {{ request()->routeIs('home') ? 'text-blue-600' : '' }}">
+                        <a href="{{ route('home') }}" class="nav-link text-sm font-medium text-gray-700 hover:text-blue-600 transition pb-1 {{ request()->routeIs('home') ? 'active text-blue-600 font-bold' : '' }}">
                             Beranda
                         </a>
-                        <a href="{{ route('about') }}" class="text-sm font-medium text-gray-700 hover:text-blue-600 transition {{ request()->routeIs('about') ? 'text-blue-600' : '' }}">
+                        <a href="{{ route('about') }}" class="nav-link text-sm font-medium text-gray-700 hover:text-blue-600 transition pb-1 {{ request()->routeIs('about') ? 'active text-blue-600 font-bold' : '' }}">
                             Tentang
                         </a>
-                        <a href="{{ route('gallery') }}" class="text-sm font-medium text-gray-700 hover:text-blue-600 transition {{ request()->routeIs('gallery') ? 'text-blue-600' : '' }}">
+                        <a href="{{ route('gallery') }}" class="nav-link text-sm font-medium text-gray-700 hover:text-blue-600 transition pb-1 {{ request()->routeIs('gallery') ? 'active text-blue-600 font-bold' : '' }}">
                             Galeri
                         </a>
                     </div>
@@ -167,15 +193,15 @@
         <div id="mobile-menu" class="hidden md:hidden mt-2">
             <div class="floating-navbar">
                 <div class="px-4 py-2 space-y-1">
-                    <a href="{{ route('home') }}" class="flex items-center px-4 py-2.5 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition {{ request()->routeIs('home') ? 'bg-blue-50 text-blue-600' : '' }}">
+                    <a href="{{ route('home') }}" class="flex items-center px-4 py-2.5 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition {{ request()->routeIs('home') ? 'bg-blue-100 text-blue-600 font-bold border-l-4 border-blue-600' : '' }}">
                         <i class="fas fa-home mr-3 text-sm"></i>
                         <span class="font-medium">Beranda</span>
                     </a>
-                    <a href="{{ route('about') }}" class="flex items-center px-4 py-2.5 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition {{ request()->routeIs('about') ? 'bg-blue-50 text-blue-600' : '' }}">
+                    <a href="{{ route('about') }}" class="flex items-center px-4 py-2.5 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition {{ request()->routeIs('about') ? 'bg-blue-100 text-blue-600 font-bold border-l-4 border-blue-600' : '' }}">
                         <i class="fas fa-info-circle mr-3 text-sm"></i>
                         <span class="font-medium">Tentang</span>
                     </a>
-                    <a href="{{ route('gallery') }}" class="flex items-center px-4 py-2.5 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition {{ request()->routeIs('gallery') ? 'bg-blue-50 text-blue-600' : '' }}">
+                    <a href="{{ route('gallery') }}" class="flex items-center px-4 py-2.5 rounded-xl text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition {{ request()->routeIs('gallery') ? 'bg-blue-100 text-blue-600 font-bold border-l-4 border-blue-600' : '' }}">
                         <i class="fas fa-images mr-3 text-sm"></i>
                         <span class="font-medium">Galeri</span>
                     </a>

@@ -89,27 +89,88 @@
 <!-- Filter Section -->
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
-        <div class="mb-4">
-            <div class="flex items-center space-x-2 mb-4">
+        <form method="GET" action="{{ route('gallery') }}" class="space-y-4">
+            <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
                     <i class="fas fa-filter text-white"></i>
                 </div>
-                <span class="font-semibold text-gray-900 text-lg">Filter Cabang:</span>
+                <span class="font-semibold text-gray-900 text-lg">Filter & Pencarian</span>
             </div>
-            <div class="flex flex-wrap gap-3">
-                <button class="px-5 py-2.5 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg filter-btn active font-medium" data-filter="all">
-                    <i class="fas fa-images mr-2"></i>
-                    Semua ({{ $photos->count() }})
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Search -->
+                <div class="lg:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-search mr-1"></i>
+                        Cari Foto
+                    </label>
+                    <input type="text" 
+                           name="search" 
+                           value="{{ request('search') }}" 
+                           placeholder="Cari judul, deskripsi, atau lokasi..."
+                           class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                </div>
+
+                <!-- Year Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar-alt mr-1"></i>
+                        Tahun
+                    </label>
+                    <select name="year" 
+                            class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                        <option value="">Semua Tahun</option>
+                        @foreach($years as $year)
+                            <option value="{{ $year }}" {{ request('year') == $year ? 'selected' : '' }}>
+                                {{ $year }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Month Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-calendar-day mr-1"></i>
+                        Bulan
+                    </label>
+                    <select name="month" 
+                            class="w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition">
+                        <option value="">Semua Bulan</option>
+                        <option value="1" {{ request('month') == '1' ? 'selected' : '' }}>Januari</option>
+                        <option value="2" {{ request('month') == '2' ? 'selected' : '' }}>Februari</option>
+                        <option value="3" {{ request('month') == '3' ? 'selected' : '' }}>Maret</option>
+                        <option value="4" {{ request('month') == '4' ? 'selected' : '' }}>April</option>
+                        <option value="5" {{ request('month') == '5' ? 'selected' : '' }}>Mei</option>
+                        <option value="6" {{ request('month') == '6' ? 'selected' : '' }}>Juni</option>
+                        <option value="7" {{ request('month') == '7' ? 'selected' : '' }}>Juli</option>
+                        <option value="8" {{ request('month') == '8' ? 'selected' : '' }}>Agustus</option>
+                        <option value="9" {{ request('month') == '9' ? 'selected' : '' }}>September</option>
+                        <option value="10" {{ request('month') == '10' ? 'selected' : '' }}>Oktober</option>
+                        <option value="11" {{ request('month') == '11' ? 'selected' : '' }}>November</option>
+                        <option value="12" {{ request('month') == '12' ? 'selected' : '' }}>Desember</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 pt-2">
+                <button type="submit" 
+                        class="px-6 py-2.5 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg font-medium">
+                    <i class="fas fa-search mr-2"></i>
+                    Terapkan Filter
                 </button>
-                @foreach($branches as $branch)
-                    <button class="px-5 py-2.5 bg-white text-gray-700 rounded-xl hover:shadow-md transition-all filter-btn font-medium border-2 border-gray-200 hover:border-gray-300" 
-                            data-filter="branch-{{ $branch->id }}">
-                        <span class="inline-block w-3 h-3 rounded-full mr-2" style="background-color: {{ $branch->color_code }};"></span>
-                        {{ $branch->name }} ({{ $photos->where('family_branch_id', $branch->id)->count() }})
-                    </button>
-                @endforeach
+                <a href="{{ route('gallery') }}" 
+                   class="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-medium">
+                    <i class="fas fa-redo mr-2"></i>
+                    Reset Filter
+                </a>
+                <div class="ml-auto text-sm text-gray-600 flex items-center gap-1.5">
+                    <i class="fas fa-images"></i>
+                    <span class="font-semibold">{{ $photos->total() }}</span>
+                    <span>foto ditemukan</span>
+                </div>
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
@@ -120,14 +181,23 @@
             <div class="w-24 h-24 bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <i class="fas fa-images text-gray-400 text-5xl"></i>
             </div>
-            <h3 class="text-3xl font-bold text-gray-900 mb-3">Belum Ada Foto</h3>
-            <p class="text-gray-600 text-lg">Album foto keluarga akan ditampilkan di sini setelah diupload oleh admin.</p>
+            @if(request()->hasAny(['search', 'year', 'month']))
+                <h3 class="text-3xl font-bold text-gray-900 mb-3">Tidak Ada Hasil</h3>
+                <p class="text-gray-600 text-lg mb-6">Tidak ditemukan foto yang sesuai dengan filter Anda.</p>
+                <a href="{{ route('gallery') }}" 
+                   class="inline-flex items-center px-6 py-3 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all shadow-md hover:shadow-lg font-medium">
+                    <i class="fas fa-redo mr-2"></i>
+                    Lihat Semua Foto
+                </a>
+            @else
+                <h3 class="text-3xl font-bold text-gray-900 mb-3">Belum Ada Foto</h3>
+                <p class="text-gray-600 text-lg">Album foto keluarga akan ditampilkan di sini setelah diupload oleh admin.</p>
+            @endif
         </div>
     @else
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6" id="gallery-container">
             @foreach($photos as $photo)
                 <div class="gallery-card shadow-lg cursor-pointer" 
-                     data-category="branch-{{ $photo->family_branch_id ?? 'none' }}"
                      onclick="openPhotoModal({{ json_encode($photo) }})">
                     <div class="gallery-image-container">
                         <img src="{{ asset('storage/' . $photo->photo_path) }}" alt="{{ $photo->title }}">
@@ -144,18 +214,64 @@
                                 {{ $photo->location }}
                             </p>
                         @endif
-                        @if($photo->branch)
-                            <span class="inline-block mt-auto px-3 py-1 text-xs rounded-full font-medium" 
-                                  style="background-color: {{ $photo->branch->color_code }}; color: white;">
-                                {{ $photo->branch->name }}
-                            </span>
-                        @endif
                     </div>
                 </div>
             @endforeach
         </div>
     @endif
 </div>
+
+<!-- Pagination -->
+@if($photos->hasPages())
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="text-sm text-gray-700 font-medium">
+                Menampilkan {{ $photos->firstItem() }} - {{ $photos->lastItem() }} dari {{ $photos->total() }} foto
+            </div>
+            <nav class="flex items-center gap-2">
+                {{-- Previous Button --}}
+                @if ($photos->onFirstPage())
+                    <span class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i>
+                    </span>
+                @else
+                    <a href="{{ $photos->appends(request()->query())->previousPageUrl() }}" 
+                       class="px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition">
+                        <i class="fas fa-chevron-left"></i>
+                    </a>
+                @endif
+
+                {{-- Page Numbers --}}
+                @foreach(range(1, $photos->lastPage()) as $page)
+                    @if($page == $photos->currentPage())
+                        <span class="px-4 py-2 bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-lg font-semibold shadow-md">
+                            {{ $page }}
+                        </span>
+                    @else
+                        <a href="{{ $photos->appends(request()->query())->url($page) }}" 
+                           class="px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition font-medium">
+                            {{ $page }}
+                        </a>
+                    @endif
+                @endforeach
+
+                {{-- Next Button --}}
+                @if ($photos->hasMorePages())
+                    <a href="{{ $photos->appends(request()->query())->nextPageUrl() }}" 
+                       class="px-4 py-2 bg-white border-2 border-gray-200 text-gray-700 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition">
+                        <i class="fas fa-chevron-right"></i>
+                    </a>
+                @else
+                    <span class="px-4 py-2 bg-gray-100 text-gray-400 rounded-lg cursor-not-allowed">
+                        <i class="fas fa-chevron-right"></i>
+                    </span>
+                @endif
+            </nav>
+        </div>
+    </div>
+</div>
+@endif
 
 <!-- Photo Modal -->
 <div id="photoModal" class="hidden fixed inset-0 bg-black bg-opacity-90 z-50 items-center justify-center p-4" onclick="closePhotoModal()">
@@ -190,14 +306,6 @@
                             <div id="modalLocation" class="font-semibold text-gray-900"></div>
                         </div>
                     </div>
-                    
-                    <div class="flex items-start" id="modalBranchContainer">
-                        <i class="fas fa-sitemap text-blue-600 mt-1 mr-3"></i>
-                        <div>
-                            <div class="text-sm text-gray-500">Cabang Keluarga</div>
-                            <div id="modalBranch"></div>
-                        </div>
-                    </div>
                 </div>
                 
                 <div id="modalDescriptionContainer" class="mb-6">
@@ -225,7 +333,7 @@
                 <h3 class="text-xl font-bold text-gray-900 mb-3">Informasi Galeri</h3>
                 <p class="text-gray-700 mb-4 leading-relaxed">
                     Galeri foto ini menampilkan momen-momen penting dan kenangan berharga keluarga kami. 
-                    Foto-foto ini dikelola oleh admin keluarga dan akan terus diperbarui dengan acara-acara terbaru.
+                    Gunakan filter tahun, bulan, dan pencarian untuk menemukan foto yang Anda cari dengan mudah.
                 </p>
                 <p class="text-gray-700 leading-relaxed">
                     <strong class="text-blue-700">Untuk Admin Keluarga:</strong> Login ke panel admin untuk menambahkan atau mengelola album foto. 
@@ -240,34 +348,19 @@
 
 @push('scripts')
 <script>
-    // Filter functionality
+    // Smooth scroll to gallery on page load if coming from pagination
     document.addEventListener('DOMContentLoaded', function() {
-        const filterButtons = document.querySelectorAll('.filter-btn');
-        const galleryItems = document.querySelectorAll('.gallery-card');
-
-        filterButtons.forEach(button => {
-            button.addEventListener('click', function() {
-                const filter = this.getAttribute('data-filter');
-                
-                // Update active button
-                filterButtons.forEach(btn => {
-                    btn.classList.remove('active', 'bg-gradient-to-br', 'from-blue-600', 'to-blue-700', 'text-white');
-                    btn.classList.add('bg-gray-100', 'text-gray-700');
-                });
-                this.classList.add('active', 'bg-gradient-to-br', 'from-blue-600', 'to-blue-700', 'text-white');
-                this.classList.remove('bg-gray-100', 'text-gray-700');
-
-                // Filter gallery items
-                galleryItems.forEach(item => {
-                    const category = item.getAttribute('data-category');
-                    if (filter === 'all' || category === filter) {
-                        item.style.display = 'block';
-                    } else {
-                        item.style.display = 'none';
-                    }
-                });
-            });
-        });
+        if (window.location.search.includes('page=')) {
+            const galleryContainer = document.getElementById('gallery-container');
+            if (galleryContainer) {
+                setTimeout(() => {
+                    window.scrollTo({
+                        top: galleryContainer.offsetTop - 100,
+                        behavior: 'smooth'
+                    });
+                }, 100);
+            }
+        }
     });
 
     // Photo modal functions
@@ -280,8 +373,6 @@
         const modalLocationContainer = document.getElementById('modalLocationContainer');
         const modalDescription = document.getElementById('modalDescription');
         const modalDescriptionContainer = document.getElementById('modalDescriptionContainer');
-        const modalBranch = document.getElementById('modalBranch');
-        const modalBranchContainer = document.getElementById('modalBranchContainer');
 
         // Set image and basic info
         modalImage.src = '/storage/' + photo.photo_path;
@@ -311,17 +402,6 @@
             modalDescriptionContainer.style.display = 'block';
         } else {
             modalDescriptionContainer.style.display = 'none';
-        }
-
-        // Set branch badge or hide if empty
-        if (photo.branch) {
-            modalBranch.innerHTML = `<span class="inline-block px-3 py-1 text-sm rounded-full font-semibold" 
-                style="background-color: ${photo.branch.color_code}20; color: ${photo.branch.color_code}; border: 1px solid ${photo.branch.color_code};">
-                ${photo.branch.name}
-            </span>`;
-            modalBranchContainer.style.display = 'flex';
-        } else {
-            modalBranchContainer.style.display = 'none';
         }
 
         // Show modal

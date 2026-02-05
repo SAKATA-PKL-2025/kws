@@ -47,11 +47,72 @@ class FamilyMemberResource extends Resource
                             ->label('Nama Panggilan'),
                         Forms\Components\Select::make('gender')
                             ->required()
+                            ->placeholder('Pilih jenis kelamin')
+                            ->selectablePlaceholder(false)
                             ->options([
                                 'male' => 'Laki-laki',
                                 'female' => 'Perempuan',
                             ])
                             ->label('Jenis Kelamin'),
+                        Forms\Components\Toggle::make('is_twin')
+                            ->label('Anak Kembar')
+                            ->helperText('Aktifkan jika anak ini kembar')
+                            ->reactive()
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if (!$state) {
+                                    $set('twin_count', null);
+                                    $set('additional_twins', []);
+                                }
+                            }),
+                        Forms\Components\TextInput::make('twin_count')
+                            ->numeric()
+                            ->label('Jumlah Kembar')
+                            ->minValue(2)
+                            ->helperText('Isi jumlah anak kembar (minimal 2)')
+                            ->visible(fn(Forms\Get $get) => $get('is_twin'))
+                            ->required(fn(Forms\Get $get) => $get('is_twin'))
+                            ->reactive()
+                            ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
+                                $count = max(2, (int) $state);
+                                $current = $get('additional_twins') ?? [];
+                                $target = max(0, $count - 1);
+
+                                if (count($current) < $target) {
+                                    $current = array_pad($current, $target, []);
+                                } elseif (count($current) > $target) {
+                                    $current = array_slice($current, 0, $target);
+                                }
+
+                                $set('additional_twins', $current);
+                            })
+                            ->live(),
+                        Forms\Components\Repeater::make('additional_twins')
+                            ->label('Data Anak Kembar Lainnya')
+                            ->schema([
+                                Forms\Components\TextInput::make('full_name')
+                                    ->label('Nama Lengkap')
+                                    ->required()
+                                    ->maxLength(255),
+                                Forms\Components\TextInput::make('nickname')
+                                    ->label('Nama Panggilan')
+                                    ->maxLength(255),
+                                Forms\Components\Select::make('gender')
+                                    ->label('Jenis Kelamin')
+                                    ->placeholder('Pilih jenis kelamin')
+                                    ->selectablePlaceholder(false)
+                                    ->options([
+                                        'male' => 'Laki-laki',
+                                        'female' => 'Perempuan',
+                                    ]),
+                            ])
+                            ->columns(2)
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                $count = max(2, count($state) + 1);
+                                $set('twin_count', $count);
+                            })
+                            ->visible(fn(Forms\Get $get) => $get('is_twin'))
+                            ->dehydrated(false),
                         Forms\Components\Toggle::make('is_alive')
                             ->label('Masih Hidup')
                             ->default(true)
@@ -76,37 +137,21 @@ class FamilyMemberResource extends Resource
                             ->visible(fn(Forms\Get $get) => !$get('is_alive')),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Cabang & Relasi Keluarga')
+                Forms\Components\Section::make('Relasi Keluarga')
                     ->description('Isi data orang tua hanya jika anggota ini adalah anak dari pasangan yang sudah ada')
                     ->schema([
-                        Forms\Components\Select::make('family_branch_id')
-                            ->label('Cabang Keluarga')
-                            ->relationship('branch', 'name')
-                            ->required()
-                            ->searchable()
-                            ->preload()
-                            ->default(function () {
-                                /** @var \App\Models\User|null $user */
-                                $user = Auth::user();
-                                if ($user && !$user->hasRole('Super Admin')) {
-                                    $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
-                                    return $adminBranch?->id;
-                                }
-                                return null;
-                            })
-                            ->visible(function () {
-                                /** @var \App\Models\User|null $user */
-                                $user = Auth::user();
-                                return $user?->hasRole('Super Admin') ?? false;
-                            })
-                            ->dehydrated(),
                         Forms\Components\TextInput::make('generation')
                             ->required()
                             ->numeric()
                             ->default(1)
                             ->label('Generasi Ke-')
                             ->minValue(1)
-                            ->helperText('Generasi 1 = Pendiri, Generasi 2 = Anak pendiri, dst'),
+                            ->disabled(function () {
+                                /** @var \App\Models\User|null $user */
+                                $user = Auth::user();
+                                return !$user?->hasRole('Super Admin');
+                            })
+                            ->dehydrated(),
                         Forms\Components\Placeholder::make('parent_info')
                             ->label('')
                             ->content('⚠️ Kosongkan field Ayah dan Ibu jika anggota ini adalah pendiri keluarga atau belum diketahui orang tuanya')
@@ -143,6 +188,8 @@ class FamilyMemberResource extends Resource
                                     // Auto-suggest next child order
                                     self::suggestChildOrder($state, 'father', $set);
                                 }
+
+                                self::updateGenerationFromParents($set, $get);
                             }),
                         Forms\Components\Select::make('mother_id')
                             ->label('Ibu (Opsional)')
@@ -176,6 +223,8 @@ class FamilyMemberResource extends Resource
                                     // Auto-suggest next child order
                                     self::suggestChildOrder($state, 'mother', $set);
                                 }
+
+                                self::updateGenerationFromParents($set, $get);
                             }),
                         Forms\Components\TextInput::make('child_order')
                             ->numeric()
@@ -185,24 +234,6 @@ class FamilyMemberResource extends Resource
                             ->live()
                             ->reactive()
                             ->dehydrated(true),
-                        Forms\Components\Toggle::make('is_twin')
-                            ->label('Anak Kembar')
-                            ->helperText('Aktifkan jika anak ini kembar')
-                            ->reactive()
-                            ->live()
-                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                if (!$state) {
-                                    $set('twin_order', null);
-                                }
-                            }),
-                        Forms\Components\TextInput::make('twin_order')
-                            ->numeric()
-                            ->label('Kembar Ke-')
-                            ->minValue(1)
-                            ->helperText('Urutan kembar (1 = kembar pertama, 2 = kembar kedua, dst)')
-                            ->visible(fn(Forms\Get $get) => $get('is_twin'))
-                            ->required(fn(Forms\Get $get) => $get('is_twin'))
-                            ->live(),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Status Pernikahan')
@@ -210,6 +241,8 @@ class FamilyMemberResource extends Resource
                     ->schema([
                         Forms\Components\Select::make('marital_status')
                             ->required()
+                            ->placeholder('Pilih status pernikahan')
+                            ->selectablePlaceholder(false)
                             ->options([
                                 'single' => 'Belum Menikah',
                                 'married' => 'Menikah',
@@ -223,58 +256,85 @@ class FamilyMemberResource extends Resource
                         Forms\Components\Placeholder::make('spouse_note')
                             ->label('')
                             ->content('ℹ️ Jika sudah menikah, data anak bisa ditambahkan nanti dengan membuat anggota baru dan memilih orang tua mereka')
-                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['married', 'widowed']))
+                            ->visible(fn(Forms\Get $get) => $get('marital_status') === 'married')
                             ->columnSpanFull(),
-                        Forms\Components\Toggle::make('spouse_is_external')
-                            ->label('Pasangan dari Luar Keluarga')
-                            ->helperText('Aktifkan jika pasangan bukan anggota keluarga Sukapura')
-                            ->default(false)
-                            ->reactive()
-                            ->live()
-                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['married', 'widowed']))
-                            ->afterStateUpdated(function ($state, Forms\Set $set) {
-                                if ($state) {
-                                    $set('spouse_id', null);
-                                } else {
-                                    $set('spouse_name', null);
-                                }
-                            }),
-                        Forms\Components\Select::make('spouse_id')
-                            ->label('Pilih Pasangan dari Anggota Keluarga')
-                            ->relationship('spouse', 'full_name')
-                            ->searchable()
-                            ->preload()
-                            ->helperText('Pilih jika pasangan adalah anggota keluarga Sukapura')
-                            ->visible(
-                                fn(Forms\Get $get) =>
-                                in_array($get('marital_status'), ['married', 'widowed']) &&
-                                    !$get('spouse_is_external')
-                            ),
                         Forms\Components\TextInput::make('spouse_name')
                             ->label('Nama Pasangan')
                             ->maxLength(255)
                             ->helperText('Masukkan nama pasangan dari luar keluarga')
                             ->required(
                                 fn(Forms\Get $get) =>
-                                in_array($get('marital_status'), ['married', 'widowed']) &&
-                                    $get('spouse_is_external')
+                                $get('marital_status') === 'married'
                             )
+                            ->visible(fn(Forms\Get $get) => $get('marital_status') === 'married'),
+                        Forms\Components\TextInput::make('former_spouse_name')
+                            ->statePath('spouse_name')
+                            ->label('Nama Mantan/Almarhum')
+                            ->maxLength(255)
+                            ->helperText('Masukkan nama mantan pasangan atau almarhum')
+                            ->required(fn(Forms\Get $get) => in_array($get('marital_status'), ['divorced', 'widowed']))
+                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['divorced', 'widowed'])),
+                        Forms\Components\TextInput::make('spouse_phone')
+                            ->label('No. Telepon Pasangan')
+                            ->numeric()
+                            ->inputMode('numeric')
+                            ->extraInputAttributes([
+                                'pattern' => '[0-9]*',
+                                'oninput' => "this.value = this.value.replace(/[^0-9]/g, '')",
+                            ])
+                            ->rule('regex:/^\d+$/')
+                            ->validationMessages([
+                                'regex' => 'No. Telepon hanya boleh angka.',
+                            ])
+                            ->maxLength(20)
                             ->visible(
                                 fn(Forms\Get $get) =>
-                                in_array($get('marital_status'), ['married', 'widowed']) &&
-                                    $get('spouse_is_external')
+                                $get('marital_status') === 'married'
+                            ),
+                        Forms\Components\TextInput::make('spouse_email')
+                            ->label('Email Pasangan')
+                            ->email()
+                            ->maxLength(255)
+                            ->visible(
+                                fn(Forms\Get $get) =>
+                                $get('marital_status') === 'married'
+                            ),
+                        Forms\Components\TextInput::make('spouse_occupation')
+                            ->label('Pekerjaan Pasangan')
+                            ->maxLength(255)
+                            ->visible(
+                                fn(Forms\Get $get) =>
+                                $get('marital_status') === 'married'
                             ),
                         Forms\Components\DatePicker::make('marriage_date')
                             ->label('Tanggal Menikah')
                             ->displayFormat('d/m/Y')
-                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['married', 'divorced', 'widowed'])),
+                            ->visible(fn(Forms\Get $get) => $get('marital_status') === 'married'),
+                        Forms\Components\DatePicker::make('marital_end_date')
+                            ->label('Tanggal Cerai/Wafat')
+                            ->displayFormat('d/m/Y')
+                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['divorced', 'widowed'])),
+                        Forms\Components\Textarea::make('marital_end_note')
+                            ->label('Catatan Status')
+                            ->rows(3)
+                            ->helperText('Catatan singkat terkait status cerai atau janda/duda')
+                            ->visible(fn(Forms\Get $get) => in_array($get('marital_status'), ['divorced', 'widowed'])),
                     ])->columns(2),
 
                 Forms\Components\Section::make('Kontak & Domisili')
                     ->schema([
                         Forms\Components\TextInput::make('phone')
-                            ->tel()
-                            ->maxLength(255)
+                            ->numeric()
+                            ->inputMode('numeric')
+                            ->extraInputAttributes([
+                                'pattern' => '[0-9]*',
+                                'oninput' => "this.value = this.value.replace(/[^0-9]/g, '')",
+                            ])
+                            ->rule('regex:/^\d+$/')
+                            ->validationMessages([
+                                'regex' => 'No. Telepon hanya boleh angka.',
+                            ])
+                            ->maxLength(20)
                             ->label('No. Telepon'),
                         Forms\Components\TextInput::make('email')
                             ->email()
@@ -282,7 +342,8 @@ class FamilyMemberResource extends Resource
                             ->label('Email'),
                         Forms\Components\TextInput::make('occupation')
                             ->maxLength(255)
-                            ->label('Pekerjaan'),
+                            ->label('Pekerjaan')
+                            ->nullable(),
                         Forms\Components\Textarea::make('address')
                             ->label('Alamat')
                             ->rows(2),
@@ -427,13 +488,7 @@ class FamilyMemberResource extends Resource
                 Tables\Columns\TextColumn::make('spouse_display')
                     ->label('Pasangan')
                     ->getStateUsing(function (FamilyMember $record): ?string {
-                        if ($record->spouse_is_external && $record->spouse_name) {
-                            return $record->spouse_name . ' (Luar Keluarga)';
-                        }
-                        if ($record->spouse_id && $record->spouse) {
-                            return $record->spouse->full_name;
-                        }
-                        return '-';
+                        return $record->spouse_name ?: '-';
                     })
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
@@ -552,6 +607,35 @@ class FamilyMemberResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function resolveGeneration(?string $fatherId, ?string $motherId, bool $isFounder = false): int
+    {
+        if ($isFounder) {
+            return 1;
+        }
+
+        $parentIds = array_filter([$fatherId, $motherId]);
+        if (empty($parentIds)) {
+            return 1;
+        }
+
+        $parentGeneration = FamilyMember::query()
+            ->whereIn('id', $parentIds)
+            ->max('generation');
+
+        return $parentGeneration ? $parentGeneration + 1 : 1;
+    }
+
+    private static function updateGenerationFromParents(Forms\Set $set, Forms\Get $get): void
+    {
+        $generation = self::resolveGeneration(
+            $get('father_id'),
+            $get('mother_id'),
+            (bool) $get('is_founder')
+        );
+
+        $set('generation', $generation);
     }
 
     public static function getPages(): array

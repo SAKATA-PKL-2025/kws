@@ -13,6 +13,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class FamilyBranchResource extends Resource
 {
@@ -29,6 +30,31 @@ class FamilyBranchResource extends Resource
     protected static ?string $modelLabel = 'Cabang Keluarga';
 
     protected static ?string $pluralModelLabel = 'Cabang Keluarga';
+
+    public static function canViewAny(): bool
+    {
+        return false;
+    }
+
+    public static function canCreate(): bool
+    {
+        return self::canViewAny();
+    }
+
+    public static function canEdit($record): bool
+    {
+        return self::canViewAny();
+    }
+
+    public static function canDelete($record): bool
+    {
+        return self::canViewAny();
+    }
+
+    public static function canView($record): bool
+    {
+        return self::canViewAny();
+    }
 
     public static function form(Form $form): Form
     {

@@ -29,6 +29,11 @@ class FamilyMember extends Model
         'spouse_id',
         'spouse_is_external',
         'spouse_name',
+        'spouse_phone',
+        'spouse_email',
+        'spouse_occupation',
+        'marital_end_date',
+        'marital_end_note',
         'generation',
         'child_order',
         'is_twin',
@@ -58,6 +63,7 @@ class FamilyMember extends Model
         'birth_date' => 'date',
         'death_date' => 'date',
         'marriage_date' => 'date',
+        'marital_end_date' => 'date',
         'approved_at' => 'datetime',
         'is_alive' => 'boolean',
         'is_public' => 'boolean',
@@ -223,11 +229,12 @@ class FamilyMember extends Model
         if ($this->spouse_is_external && $this->spouse_name) {
             return $this->spouse_name;
         }
-        
-        if ($this->spouse_id && $this->spouse) {
-            return $this->spouse->full_name;
+
+        // Cek apakah relasi sudah di-load untuk menghindari N+1
+        if ($this->spouse_id && $this->relationLoaded('spouse')) {
+            return $this->spouse?->full_name;
         }
-        
+
         return null;
     }
 

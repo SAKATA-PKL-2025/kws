@@ -13,21 +13,30 @@ class PublicController extends Controller
   public function index()
   {
     // Ambil semua anggota keluarga yang public dan approved
-    // PENTING: Jangan eager load 'children' karena akan menyebabkan circular reference
-    $members = FamilyMember::with(['father', 'mother', 'branch'])
+    // Load father_id & mother_id untuk membangun tree
+    $members = FamilyMember::select([
+      'id',
+      'full_name',
+      'nickname',
+      'gender',
+      'birth_date',
+      'death_date',
+      'is_alive',
+      'generation',
+      'child_order',
+      'profile_photo',
+      'marital_status',
+      'spouse_id',
+      'father_id',
+      'mother_id'
+    ])
       ->where('is_public', true)
       ->where('status', 'approved')
       ->orderBy('generation')
       ->orderBy('child_order')
       ->get();
 
-    $branches = FamilyBranch::where('is_active', true)
-      ->withCount(['members' => function ($query) {
-        $query->where('is_public', true)->where('status', 'approved');
-      }])
-      ->get();
-
-    return view('public.index', compact('members', 'branches'));
+    return view('public.index', compact('members'));
   }
 
   public function about()
@@ -35,18 +44,45 @@ class PublicController extends Controller
     return view('public.about');
   }
 
-  public function gallery()
+  public function gallery(Request $request)
   {
-    $photos = FamilyPhoto::with(['branch'])
-      ->where('is_public', true)
-      ->where('status', 'approved')
-      ->orderBy('photo_date', 'desc')
+    $query = FamilyPhoto::where('is_public', true)
+      ->where('status', 'approved');
+
+    // Filter by year
+    if ($request->filled('year')) {
+      $query->whereYear('photo_date', $request->year);
+    }
+
+    // Filter by month
+    if ($request->filled('month')) {
+      $query->whereMonth('photo_date', $request->month);
+    }
+
+    // Search by title or description
+    if ($request->filled('search')) {
+      $search = $request->search;
+      $query->where(function ($q) use ($search) {
+        $q->where('title', 'like', '%' . $search . '%')
+          ->orWhere('description', 'like', '%' . $search . '%')
+          ->orWhere('location', 'like', '%' . $search . '%');
+      });
+    }
+
+    $photos = $query->orderBy('photo_date', 'desc')
       ->orderBy('created_at', 'desc')
-      ->get();
+      ->paginate(8);
 
-    $branches = FamilyBranch::where('is_active', true)->get();
+    // Get available years for filter
+    $years = FamilyPhoto::where('is_public', true)
+      ->where('status', 'approved')
+      ->whereNotNull('photo_date')
+      ->selectRaw('YEAR(photo_date) as year')
+      ->distinct()
+      ->orderBy('year', 'desc')
+      ->pluck('year');
 
-    return view('public.gallery', compact('photos', 'branches'));
+    return view('public.gallery', compact('photos', 'years'));
   }
 
   public function search(Request $request)
