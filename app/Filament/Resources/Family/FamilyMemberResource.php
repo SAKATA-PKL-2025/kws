@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Family;
 use App\Filament\Resources\Family\FamilyMemberResource\Pages;
 use App\Filament\Resources\Family\FamilyMemberResource\RelationManagers;
 use App\Models\FamilyMember;
-use App\Models\FamilyBranch;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -399,18 +398,7 @@ class FamilyMemberResource extends Resource
         return $table
             ->modifyQueryUsing(function (Builder $query) use ($user, $isSuperAdmin) {
                 // Super Admin bisa lihat semua
-                if ($isSuperAdmin) {
-                    return $query;
-                }
-
-                // Admin Keluarga hanya lihat anggota di cabangnya
-                $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
-                if ($adminBranch) {
-                    return $query->where('family_branch_id', $adminBranch->id);
-                }
-
-                // Fallback: jangan tampilkan apa-apa
-                return $query->whereRaw('1 = 0');
+                return $query;
             })
             ->columns([
                 Tables\Columns\TextColumn::make('full_name')
@@ -656,12 +644,6 @@ class FamilyMemberResource extends Resource
         if ($user->hasRole('Super Admin')) {
             // Super Admin lihat jumlah pending
             return static::getModel()::where('status', 'pending')->count() ?: null;
-        }
-
-        // Admin Keluarga lihat total anggota di cabangnya
-        $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
-        if ($adminBranch) {
-            return static::getModel()::where('family_branch_id', $adminBranch->id)->count() ?: null;
         }
 
         return null;

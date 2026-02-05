@@ -45,16 +45,6 @@ class FamilyMemberPolicy
             return true;
         }
 
-        // Admin Keluarga hanya bisa edit anggota di cabangnya sendiri
-        if ($user->hasRole('Admin Keluarga')) {
-            // Cari cabang yang di-manage oleh admin ini
-            $adminBranch = \App\Models\FamilyBranch::where('admin_id', $user->id)->first();
-
-            if ($adminBranch && $familyMember->family_branch_id === $adminBranch->id) {
-                return true;
-            }
-        }
-
         return false;
     }
 
@@ -66,15 +56,6 @@ class FamilyMemberPolicy
         // Super Admin bisa hapus semua
         if ($user->hasRole('Super Admin')) {
             return true;
-        }
-
-        // Admin Keluarga hanya bisa hapus anggota di cabangnya sendiri
-        if ($user->hasRole('Admin Keluarga')) {
-            $adminBranch = \App\Models\FamilyBranch::where('admin_id', $user->id)->first();
-
-            if ($adminBranch && $familyMember->family_branch_id === $adminBranch->id) {
-                return true;
-            }
         }
 
         return false;

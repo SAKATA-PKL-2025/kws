@@ -402,7 +402,7 @@
                                 searchResults.innerHTML = data.map(member => `
                                     <a href="#member-${member.id}" onclick="highlightMember('${member.id}')" class="flex items-center p-3 hover:bg-blue-50 transition cursor-pointer border-b border-gray-50 last:border-0">
                                         <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white font-bold text-sm"
-                                             style="background: ${member.branch_color || '#3b82f6'}">
+                                             style="background: #3b82f6">
                                             ${member.full_name.charAt(0).toUpperCase()}
                                         </div>
                                         <div class="flex-1 min-w-0">
@@ -412,7 +412,6 @@
                                                     <i class="fas fa-${member.gender === 'male' ? 'mars text-blue-500' : 'venus text-pink-500'} mr-1"></i>
                                                     ${member.gender === 'male' ? 'Laki-laki' : 'Perempuan'}
                                                 </span>
-                                                ${member.branch_name ? `<span class="mx-1.5">•</span><span class="truncate">${member.branch_name}</span>` : ''}
                                             </div>
                                         </div>
                                         <div class="ml-2 flex flex-col items-end">

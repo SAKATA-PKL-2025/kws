@@ -64,15 +64,6 @@
         display: none;
     }
     
-    .branch-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        margin: 2px;
-    }
-    
     .member-card {
         background: white;
         border: 2px solid #e5e7eb;
@@ -618,13 +609,11 @@
         const person2 = node.person2;
 
         const renderMemberCard = (person) => {
-            const branchColor = person.branch?.color_code || '#3b82f6';
             return `
-                <div class="member-card" data-member-id="${person.id}" onclick="showMemberDetail('${person.id}')" style="border-color: ${branchColor}">
+                <div class="member-card" data-member-id="${person.id}" onclick="showMemberDetail('${person.id}')">
                     <div class="text-base font-bold text-gray-900 leading-tight">${person.full_name}</div>
                     <div class="text-xs text-gray-500 mt-1">${person.nickname || ''}</div>
                     ${person.birth_date ? `<div class="text-xs text-gray-400">Lahir: ${person.birth_date.split('-')[0]}</div>` : ''}
-                    ${person.branch ? `<div class="mt-2"><span class="branch-badge" style="background-color: ${branchColor}20; color: ${branchColor}; border: 1px solid ${branchColor}; font-size: 10px; padding: 2px 8px;">${person.branch.name}</span></div>` : ''}
                     <div class="text-xs text-gray-400 mt-1">Generasi ${person.generation}</div>
                 </div>
             `;
@@ -743,16 +732,6 @@
                     <div>
                         <div class="text-sm text-gray-500">Tempat Lahir</div>
                         <div class="font-semibold">${member.birth_place}</div>
-                    </div>
-                ` : ''}
-                ${member.branch ? `
-                    <div>
-                        <div class="text-sm text-gray-500">Cabang Keluarga</div>
-                        <div>
-                            <span class="branch-badge" style="background-color: ${member.branch.color_code}20; color: ${member.branch.color_code}; border: 1px solid ${member.branch.color_code};">
-                                ${member.branch.name}
-                            </span>
-                        </div>
                     </div>
                 ` : ''}
             </div>

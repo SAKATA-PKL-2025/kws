@@ -14,7 +14,6 @@ class FamilyPhoto extends Model
         'title',
         'description',
         'photo_path',
-        'family_branch_id',
         'photo_date',
         'location',
         'uploaded_by',
@@ -30,11 +29,6 @@ class FamilyPhoto extends Model
         'is_public' => 'boolean',
         'approved_at' => 'datetime',
     ];
-
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(FamilyBranch::class, 'family_branch_id');
-    }
 
     public function uploader(): BelongsTo
     {

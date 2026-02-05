@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Family;
 
 use App\Filament\Resources\Family\FamilyPhotoResource\Pages;
 use App\Models\FamilyPhoto;
-use App\Models\FamilyBranch;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -36,7 +35,6 @@ class FamilyPhotoResource extends Resource
     /** @var \App\Models\User $user */
     $user = Auth::user();
     $isSuperAdmin = $user->hasRole('Super Admin');
-    $adminBranch = $isSuperAdmin ? null : FamilyBranch::where('admin_id', $user->id)->first();
 
     return $form
       ->schema([
@@ -109,18 +107,6 @@ class FamilyPhotoResource extends Resource
     $isSuperAdmin = $user->hasRole('Super Admin');
 
     return $table
-      ->modifyQueryUsing(function (Builder $query) use ($user, $isSuperAdmin) {
-        if ($isSuperAdmin) {
-          return $query;
-        }
-
-        $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
-        if ($adminBranch) {
-          return $query->where('family_branch_id', $adminBranch->id);
-        }
-
-        return $query->whereRaw('1 = 0');
-      })
       ->columns([
         Tables\Columns\ImageColumn::make('photo_path')
           ->label('Foto')
@@ -327,11 +313,6 @@ class FamilyPhotoResource extends Resource
 
     if ($user->hasRole('Super Admin')) {
       return static::getModel()::where('status', 'pending')->count() ?: null;
-    }
-
-    $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
-    if ($adminBranch) {
-      return static::getModel()::where('family_branch_id', $adminBranch->id)->count() ?: null;
     }
 
     return null;

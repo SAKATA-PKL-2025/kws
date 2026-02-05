@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Family\FamilyPhotoResource\Widgets;
 
-use App\Models\FamilyBranch;
 use App\Models\FamilyPhoto;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
@@ -25,14 +24,10 @@ class PendingPhotosInfoWidget extends Widget
             ];
         }
 
-        $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
-        
-        if (!$adminBranch) {
-            return [
-                'show' => false,
-                'pendingCount' => 0,
-            ];
-        }
+        return [
+            'show' => false,
+            'pendingCount' => 0,
+        ];
 
         $pendingCount = FamilyPhoto::where('family_branch_id', $adminBranch->id)
             ->where('status', 'pending')

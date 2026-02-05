@@ -1,7 +1,5 @@
 <?php
 
-use App\Http\Controllers\Category\CategoryController;
-use App\Http\Controllers\IndexController;
 use App\Http\Controllers\Product\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\PublicController;
@@ -26,9 +24,6 @@ Route::get('/cari-anggota', [PublicController::class, 'search'])->name('search.m
 Route::get('/kebijakan-privasi', function () {
     return view('public.privacy');
 })->name('privacy');
-
-// Route lama (bisa dihapus jika tidak dipakai)
-// Route::get('/', [IndexController::class, 'index'])->name('index');
 
 Route::prefix('/product')->name('product.')->controller(ProductController::class)->group(function () {
     Route::get('', 'index')->name('index');

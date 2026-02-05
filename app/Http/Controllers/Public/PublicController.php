@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
-use App\Models\FamilyBranch;
 use App\Models\FamilyMember;
 use App\Models\FamilyPhoto;
 use Illuminate\Http\Request;

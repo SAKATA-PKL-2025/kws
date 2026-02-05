@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Family\FamilyMemberResource\Pages;
 
 use App\Filament\Resources\Family\FamilyMemberResource;
 use App\Models\FamilyMember;
-use App\Models\FamilyBranch;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
@@ -16,16 +15,6 @@ class CreateFamilyMember extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Auto-set branch for non-super admins
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        if (!$user->hasRole('Super Admin')) {
-            $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
-            if ($adminBranch) {
-                $data['family_branch_id'] = $adminBranch->id;
-            }
-        }
-
         $data['generation'] = FamilyMemberResource::resolveGeneration(
             $data['father_id'] ?? null,
             $data['mother_id'] ?? null,
@@ -72,7 +61,6 @@ class CreateFamilyMember extends CreateRecord
                 'death_date' => null,
                 'death_place' => null,
                 'is_alive' => $state['is_alive'] ?? true,
-                'family_branch_id' => $this->record?->family_branch_id,
                 'father_id' => $this->record?->father_id,
                 'mother_id' => $this->record?->mother_id,
                 'spouse_id' => null,

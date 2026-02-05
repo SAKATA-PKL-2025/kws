@@ -3,28 +3,14 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\FamilyBranch;
 use App\Models\FamilyMember;
 
 class FamilyDummySeeder extends Seeder
 {
   public function run(): void
   {
-    // Ambil atau buat cabang keluarga
-    $branch = FamilyBranch::first();
-
-    if (!$branch) {
-      $branch = FamilyBranch::create([
-        'name' => 'Cabang Keturunan Anak Pertama',
-        'founder_name' => 'Bapak Wirawan',
-        'color_code' => '#3b82f6',
-        'is_active' => true,
-      ]);
-    }
-
     // GENERASI 1 - Leluhur (Kakek-Nenek)
     $kakek = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Bapak Wirawan Kusuma',
       'nickname' => 'Pak Wir',
       'gender' => 'male',
@@ -40,7 +26,6 @@ class FamilyDummySeeder extends Seeder
     ]);
 
     $nenek = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Ibu Siti Rahayu',
       'nickname' => 'Bu Siti',
       'gender' => 'female',
@@ -59,7 +44,6 @@ class FamilyDummySeeder extends Seeder
 
     // GENERASI 2 - Orang Tua (Anak dari Kakek-Nenek)
     $bapak = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Ahmad Wirawan',
       'nickname' => 'Pak Ahmad',
       'gender' => 'male',
@@ -77,7 +61,6 @@ class FamilyDummySeeder extends Seeder
     ]);
 
     $ibu = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Dewi Lestari',
       'nickname' => 'Bu Dewi',
       'gender' => 'female',
@@ -97,7 +80,6 @@ class FamilyDummySeeder extends Seeder
 
     // Saudara kandung dari Bapak (Paman/Bibi)
     $paman = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Budi Wirawan',
       'nickname' => 'Pak Budi',
       'gender' => 'male',
@@ -115,7 +97,6 @@ class FamilyDummySeeder extends Seeder
     ]);
 
     $tante = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Maya Kusuma',
       'nickname' => 'Bu Maya',
       'gender' => 'female',
@@ -134,7 +115,6 @@ class FamilyDummySeeder extends Seeder
 
     // GENERASI 3 - Cucu (Anak dari Ahmad & Dewi)
     $anak1 = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Rizki Ahmad Wirawan',
       'nickname' => 'Rizki',
       'gender' => 'male',
@@ -154,7 +134,6 @@ class FamilyDummySeeder extends Seeder
     ]);
 
     $anak2 = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Sari Dewi Wirawan',
       'nickname' => 'Sari',
       'gender' => 'female',
@@ -174,7 +153,6 @@ class FamilyDummySeeder extends Seeder
     ]);
 
     $anak3 = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Andi Ahmad Wirawan',
       'nickname' => 'Andi',
       'gender' => 'male',
@@ -195,7 +173,6 @@ class FamilyDummySeeder extends Seeder
 
     // Istri dari Rizki
     $istriRizki = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Linda Permata Sari',
       'nickname' => 'Linda',
       'gender' => 'female',
@@ -217,7 +194,6 @@ class FamilyDummySeeder extends Seeder
 
     // GENERASI 4 - Cicit (Anak dari Rizki & Linda)
     $cucu1 = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Alya Rizki Wirawan',
       'nickname' => 'Alya',
       'gender' => 'female',
@@ -234,7 +210,6 @@ class FamilyDummySeeder extends Seeder
     ]);
 
     $cucu2 = FamilyMember::create([
-      'family_branch_id' => $branch->id,
       'full_name' => 'Aryan Rizki Wirawan',
       'nickname' => 'Aryan',
       'gender' => 'male',

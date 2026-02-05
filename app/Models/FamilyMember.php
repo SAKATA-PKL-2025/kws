@@ -23,7 +23,6 @@ class FamilyMember extends Model
         'death_date',
         'death_place',
         'is_alive',
-        'family_branch_id',
         'father_id',
         'mother_id',
         'spouse_id',
@@ -76,14 +75,6 @@ class FamilyMember extends Model
     ];
 
     protected $appends = ['age', 'display_name'];
-
-    /**
-     * Cabang keluarga
-     */
-    public function branch(): BelongsTo
-    {
-        return $this->belongsTo(FamilyBranch::class, 'family_branch_id');
-    }
 
     /**
      * Ayah

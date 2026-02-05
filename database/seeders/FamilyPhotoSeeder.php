@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\FamilyBranch;
 use App\Models\FamilyPhoto;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -15,12 +14,11 @@ class FamilyPhotoSeeder extends Seeder
    */
   public function run(): void
   {
-    // Get all branches and users
-    $branches = FamilyBranch::all();
+    // Get all users
     $users = User::all();
 
-    if ($branches->isEmpty() || $users->isEmpty()) {
-      $this->command->warn('Harap jalankan FamilyDummySeeder terlebih dahulu!');
+    if ($users->isEmpty()) {
+      $this->command->warn('Harap jalankan seeder User terlebih dahulu!');
       return;
     }
 
@@ -106,14 +104,10 @@ class FamilyPhotoSeeder extends Seeder
       // In production, you would upload actual images
       Storage::disk('public')->put($imagePath, '');
 
-      // Randomly assign to a branch
-      $branch = $branches->random();
-
       FamilyPhoto::create([
         'title' => $data['title'],
         'description' => $data['description'],
         'photo_path' => $imagePath,
-        'family_branch_id' => $branch->id,
         'photo_date' => $data['photo_date'],
         'location' => $data['location'],
         'uploaded_by' => $superAdmin->id,
