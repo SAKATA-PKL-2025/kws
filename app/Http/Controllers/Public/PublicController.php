@@ -13,7 +13,8 @@ class PublicController extends Controller
   public function index()
   {
     // Ambil semua anggota keluarga yang public dan approved
-    $members = FamilyMember::with(['father', 'mother', 'children', 'branch'])
+    // PENTING: Jangan eager load 'children' karena akan menyebabkan circular reference
+    $members = FamilyMember::with(['father', 'mother', 'branch'])
       ->where('is_public', true)
       ->where('status', 'approved')
       ->orderBy('generation')

@@ -4,13 +4,30 @@ namespace App\Filament\Resources\Family\FamilyMemberResource\Pages;
 
 use App\Filament\Resources\Family\FamilyMemberResource;
 use App\Models\FamilyMember;
+use App\Models\FamilyBranch;
 use Filament\Actions;
 use Filament\Resources\Pages\CreateRecord;
 use Filament\Notifications\Notification;
+use Illuminate\Support\Facades\Auth;
 
 class CreateFamilyMember extends CreateRecord
 {
     protected static string $resource = FamilyMemberResource::class;
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // Auto-set branch for non-super admins
+        /** @var \App\Models\User $user */
+        $user = Auth::user();
+        if (!$user->hasRole('Super Admin')) {
+            $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
+            if ($adminBranch) {
+                $data['family_branch_id'] = $adminBranch->id;
+            }
+        }
+
+        return $data;
+    }
 
     protected function beforeCreate(): void
     {
@@ -19,7 +36,7 @@ class CreateFamilyMember extends CreateRecord
             // No parents specified, no validation needed
             return;
         }
-        
+
         // If parent is specified, validate they are married
         if (!empty($this->data['father_id'])) {
             $father = FamilyMember::find($this->data['father_id']);
@@ -30,11 +47,11 @@ class CreateFamilyMember extends CreateRecord
                     ->body("Ayah yang dipilih ({$father->full_name}) belum menikah. Tidak dapat menambahkan anak untuk orang yang belum menikah.")
                     ->persistent()
                     ->send();
-                
+
                 $this->halt();
             }
         }
-        
+
         if (!empty($this->data['mother_id'])) {
             $mother = FamilyMember::find($this->data['mother_id']);
             if ($mother && !in_array($mother->marital_status, ['married', 'widowed'])) {
@@ -44,7 +61,7 @@ class CreateFamilyMember extends CreateRecord
                     ->body("Ibu yang dipilih ({$mother->full_name}) belum menikah. Tidak dapat menambahkan anak untuk orang yang belum menikah.")
                     ->persistent()
                     ->send();
-                
+
                 $this->halt();
             }
         }

@@ -34,11 +34,6 @@ class FamilyMemberResource extends Resource
 
     public static function form(Form $form): Form
     {
-        /** @var \App\Models\User $user */
-        $user = Auth::user();
-        $isSuperAdmin = $user->hasRole('Super Admin');
-        $adminBranch = $isSuperAdmin ? null : FamilyBranch::where('admin_id', $user->id)->first();
-
         return $form
             ->schema([
                 Forms\Components\Section::make('Informasi Dasar')
@@ -90,8 +85,21 @@ class FamilyMemberResource extends Resource
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->default($adminBranch?->id)
-                            ->disabled(!$isSuperAdmin),
+                            ->default(function () {
+                                /** @var \App\Models\User|null $user */
+                                $user = Auth::user();
+                                if ($user && !$user->hasRole('Super Admin')) {
+                                    $adminBranch = FamilyBranch::where('admin_id', $user->id)->first();
+                                    return $adminBranch?->id;
+                                }
+                                return null;
+                            })
+                            ->visible(function () {
+                                /** @var \App\Models\User|null $user */
+                                $user = Auth::user();
+                                return $user?->hasRole('Super Admin') ?? false;
+                            })
+                            ->dehydrated(),
                         Forms\Components\TextInput::make('generation')
                             ->required()
                             ->numeric()
@@ -113,7 +121,7 @@ class FamilyMemberResource extends Resource
                             ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
                                 if ($state) {
                                     $father = FamilyMember::find($state);
-                                    
+
                                     // Check if father is married
                                     if ($father && !in_array($father->marital_status, ['married', 'widowed'])) {
                                         Notification::make()
@@ -122,16 +130,16 @@ class FamilyMemberResource extends Resource
                                             ->body("Ayah yang dipilih ({$father->full_name}) belum menikah. Anda tidak dapat menambahkan anak untuk orang yang belum menikah.")
                                             ->persistent()
                                             ->send();
-                                        
+
                                         $set('father_id', null);
                                         $set('mother_id', null);
                                         return;
                                     }
-                                    
+
                                     if ($father && $father->spouse_id) {
                                         $set('mother_id', $father->spouse_id);
                                     }
-                                    
+
                                     // Auto-suggest next child order
                                     self::suggestChildOrder($state, 'father', $set);
                                 }
@@ -146,7 +154,7 @@ class FamilyMemberResource extends Resource
                             ->afterStateUpdated(function ($state, Forms\Set $set, Forms\Get $get) {
                                 if ($state) {
                                     $mother = FamilyMember::find($state);
-                                    
+
                                     // Check if mother is married
                                     if ($mother && !in_array($mother->marital_status, ['married', 'widowed'])) {
                                         Notification::make()
@@ -155,16 +163,16 @@ class FamilyMemberResource extends Resource
                                             ->body("Ibu yang dipilih ({$mother->full_name}) belum menikah. Anda tidak dapat menambahkan anak untuk orang yang belum menikah.")
                                             ->persistent()
                                             ->send();
-                                        
+
                                         $set('mother_id', null);
                                         $set('father_id', null);
                                         return;
                                     }
-                                    
+
                                     if ($mother && $mother->spouse_id) {
                                         $set('father_id', $mother->spouse_id);
                                     }
-                                    
+
                                     // Auto-suggest next child order
                                     self::suggestChildOrder($state, 'mother', $set);
                                 }
@@ -237,21 +245,24 @@ class FamilyMemberResource extends Resource
                             ->searchable()
                             ->preload()
                             ->helperText('Pilih jika pasangan adalah anggota keluarga Sukapura')
-                            ->visible(fn(Forms\Get $get) => 
-                                in_array($get('marital_status'), ['married', 'widowed']) && 
-                                !$get('spouse_is_external')
+                            ->visible(
+                                fn(Forms\Get $get) =>
+                                in_array($get('marital_status'), ['married', 'widowed']) &&
+                                    !$get('spouse_is_external')
                             ),
                         Forms\Components\TextInput::make('spouse_name')
                             ->label('Nama Pasangan')
                             ->maxLength(255)
                             ->helperText('Masukkan nama pasangan dari luar keluarga')
-                            ->required(fn(Forms\Get $get) => 
-                                in_array($get('marital_status'), ['married', 'widowed']) && 
-                                $get('spouse_is_external')
+                            ->required(
+                                fn(Forms\Get $get) =>
+                                in_array($get('marital_status'), ['married', 'widowed']) &&
+                                    $get('spouse_is_external')
                             )
-                            ->visible(fn(Forms\Get $get) => 
-                                in_array($get('marital_status'), ['married', 'widowed']) && 
-                                $get('spouse_is_external')
+                            ->visible(
+                                fn(Forms\Get $get) =>
+                                in_array($get('marital_status'), ['married', 'widowed']) &&
+                                    $get('spouse_is_external')
                             ),
                         Forms\Components\DatePicker::make('marriage_date')
                             ->label('Tanggal Menikah')
@@ -304,9 +315,17 @@ class FamilyMemberResource extends Resource
                         Forms\Components\Toggle::make('is_founder')
                             ->label('Pendiri/Founder Keluarga')
                             ->default(false)
-                            ->visible($isSuperAdmin),
+                            ->visible(function () {
+                                /** @var \App\Models\User|null $user */
+                                $user = Auth::user();
+                                return $user?->hasRole('Super Admin') ?? false;
+                            }),
                     ])->columns(2)
-                    ->visible($isSuperAdmin),
+                    ->visible(function () {
+                        /** @var \App\Models\User|null $user */
+                        $user = Auth::user();
+                        return $user?->hasRole('Super Admin') ?? false;
+                    }),
             ]);
     }
 
@@ -587,15 +606,15 @@ class FamilyMemberResource extends Resource
         }
 
         $column = $parentType === 'father' ? 'father_id' : 'mother_id';
-        
+
         // Count existing children
         $existingChildren = FamilyMember::where($column, $parentId)->count();
-        
+
         // Suggest next order
         $nextOrder = $existingChildren + 1;
-        
+
         $set('child_order', $nextOrder);
-        
+
         // Show notification
         if ($existingChildren > 0) {
             Notification::make()
